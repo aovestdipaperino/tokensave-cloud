@@ -6,3 +6,5 @@ compatibility_date = "2024-09-23"
 # Set these as secrets via `wrangler secret put`:
 # UPSTASH_URL
 # UPSTASH_TOKEN
+UPSTASH_URL = "https://test.upstash.io"
+UPSTASH_TOKEN = "test-token"

@@ -1,5 +1,5 @@
 import { env, createExecutionContext, waitOnExecutionContext } from "cloudflare:test";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import worker from "../src/index.js";
 import { isValidCountryCode, countryToFlag } from "../src/index.js";
 
@@ -48,5 +48,34 @@ describe("countryToFlag", () => {
 
   it("converts JP to flag emoji", () => {
     expect(countryToFlag("JP")).toBe("🇯🇵");
+  });
+});
+
+describe("POST /increment country tracking", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(new Response(JSON.stringify({ result: 42 }), { status: 200 }))
+      )
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("still returns total when cf.country is absent", async () => {
+    const request = new Request("http://localhost/increment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: 1 }),
+    });
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toHaveProperty("total");
   });
 });

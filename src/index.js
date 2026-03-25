@@ -26,11 +26,27 @@ export default {
       if (!body || !Number.isInteger(body.amount) || body.amount < 1 || body.amount > 10000000) {
         return Response.json({ error: "Invalid amount" }, { status: 400, headers });
       }
-      const res = await fetch(
+
+      const authHeaders = { Authorization: `Bearer ${env.UPSTASH_TOKEN}` };
+      const incrPromise = fetch(
         `${env.UPSTASH_URL}/INCRBY/total_tokens_saved/${body.amount}`,
-        { headers: { Authorization: `Bearer ${env.UPSTASH_TOKEN}` } }
+        { headers: authHeaders }
       );
-      const data = await res.json();
+
+      const country = request.cf?.country;
+      if (isValidCountryCode(country)) {
+        const saddPromise = fetch(
+          `${env.UPSTASH_URL}/SADD/countries/${country}`,
+          { headers: authHeaders }
+        ).catch(() => {});
+
+        const [incrRes] = await Promise.all([incrPromise, saddPromise]);
+        const data = await incrRes.json();
+        return Response.json({ total: data.result }, { headers });
+      }
+
+      const incrRes = await incrPromise;
+      const data = await incrRes.json();
       return Response.json({ total: data.result }, { headers });
     }
 
