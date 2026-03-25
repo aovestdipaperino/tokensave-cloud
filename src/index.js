@@ -1,3 +1,7 @@
+export function isValidCountryCode(code) {
+  return typeof code === "string" && /^[A-Z]{2}$/.test(code);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
