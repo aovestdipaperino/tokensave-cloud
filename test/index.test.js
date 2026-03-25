@@ -1,7 +1,7 @@
 import { env, createExecutionContext, waitOnExecutionContext } from "cloudflare:test";
 import { describe, it, expect } from "vitest";
 import worker from "../src/index.js";
-import { isValidCountryCode } from "../src/index.js";
+import { isValidCountryCode, countryToFlag } from "../src/index.js";
 
 describe("smoke test", () => {
   it("returns 404 for unknown routes", async () => {
@@ -34,5 +34,19 @@ describe("isValidCountryCode", () => {
   it("rejects null and undefined", () => {
     expect(isValidCountryCode(null)).toBe(false);
     expect(isValidCountryCode(undefined)).toBe(false);
+  });
+});
+
+describe("countryToFlag", () => {
+  it("converts US to flag emoji", () => {
+    expect(countryToFlag("US")).toBe("🇺🇸");
+  });
+
+  it("converts DE to flag emoji", () => {
+    expect(countryToFlag("DE")).toBe("🇩🇪");
+  });
+
+  it("converts JP to flag emoji", () => {
+    expect(countryToFlag("JP")).toBe("🇯🇵");
   });
 });

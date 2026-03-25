@@ -2,6 +2,12 @@ export function isValidCountryCode(code) {
   return typeof code === "string" && /^[A-Z]{2}$/.test(code);
 }
 
+export function countryToFlag(code) {
+  return String.fromCodePoint(
+    ...code.split("").map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)
+  );
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
