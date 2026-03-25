@@ -82,7 +82,9 @@ describe("GET /countries happy path", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
-        Promise.resolve(new Response(JSON.stringify({ result: 42 }), { status: 200 }))
+        Promise.resolve(
+          new Response(JSON.stringify({ result: ["US", "DE", "JP"] }), { status: 200 })
+        )
       )
     );
   });
@@ -91,17 +93,15 @@ describe("GET /countries happy path", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns flags array and total", async () => {
+  it("returns sorted emoji flags and total", async () => {
     const request = new Request("http://localhost/countries");
     const ctx = createExecutionContext();
     const response = await worker.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data).toHaveProperty("flags");
-    expect(data).toHaveProperty("total");
-    expect(Array.isArray(data.flags)).toBe(true);
-    expect(typeof data.total).toBe("number");
+    expect(data.flags).toEqual(["🇩🇪", "🇯🇵", "🇺🇸"]);
+    expect(data.total).toBe(3);
   });
 
   it("returns empty flags when offset exceeds total", async () => {
@@ -112,7 +112,18 @@ describe("GET /countries happy path", () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.flags).toEqual([]);
-    expect(typeof data.total).toBe("number");
+    expect(data.total).toBe(3);
+  });
+
+  it("paginates with limit and offset", async () => {
+    const request = new Request("http://localhost/countries?limit=1&offset=1");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.flags).toEqual(["🇯🇵"]);
+    expect(data.total).toBe(3);
   });
 });
 

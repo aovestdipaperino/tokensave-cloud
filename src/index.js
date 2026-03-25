@@ -58,16 +58,19 @@ export default {
       let offset = 0;
 
       if (limitParam !== null) {
+        if (!/^\d+$/.test(limitParam)) {
+          return Response.json({ error: "Invalid limit" }, { status: 400, headers });
+        }
         limit = Number(limitParam);
-        if (!Number.isInteger(limit) || limit < 1) {
+        if (limit < 1) {
           return Response.json({ error: "Invalid limit" }, { status: 400, headers });
         }
       }
       if (offsetParam !== null) {
-        offset = Number(offsetParam);
-        if (!Number.isInteger(offset) || offset < 0) {
+        if (!/^\d+$/.test(offsetParam)) {
           return Response.json({ error: "Invalid offset" }, { status: 400, headers });
         }
+        offset = Number(offsetParam);
       }
 
       const res = await fetch(`${env.UPSTASH_URL}/SMEMBERS/countries`, {
