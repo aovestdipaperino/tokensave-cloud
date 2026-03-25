@@ -50,6 +50,39 @@ export default {
       return Response.json({ total: data.result }, { headers });
     }
 
+    if (request.method === "GET" && url.pathname === "/countries") {
+      const limitParam = url.searchParams.get("limit");
+      const offsetParam = url.searchParams.get("offset");
+
+      let limit = null;
+      let offset = 0;
+
+      if (limitParam !== null) {
+        limit = Number(limitParam);
+        if (!Number.isInteger(limit) || limit < 1) {
+          return Response.json({ error: "Invalid limit" }, { status: 400, headers });
+        }
+      }
+      if (offsetParam !== null) {
+        offset = Number(offsetParam);
+        if (!Number.isInteger(offset) || offset < 0) {
+          return Response.json({ error: "Invalid offset" }, { status: 400, headers });
+        }
+      }
+
+      const res = await fetch(`${env.UPSTASH_URL}/SMEMBERS/countries`, {
+        headers: { Authorization: `Bearer ${env.UPSTASH_TOKEN}` },
+      });
+      const data = await res.json();
+      const codes = (Array.isArray(data.result) ? data.result : []).filter(isValidCountryCode).sort();
+
+      const total = codes.length;
+      const sliced = limit !== null ? codes.slice(offset, offset + limit) : codes.slice(offset);
+      const flags = sliced.map(countryToFlag);
+
+      return Response.json({ flags, total }, { headers });
+    }
+
     return Response.json({ error: "Not found" }, { status: 404, headers });
   },
 };

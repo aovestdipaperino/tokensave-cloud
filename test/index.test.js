@@ -51,6 +51,71 @@ describe("countryToFlag", () => {
   });
 });
 
+describe("GET /countries", () => {
+  it("returns 400 for non-integer limit", async () => {
+    const request = new Request("http://localhost/countries?limit=abc");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 400 for negative offset", async () => {
+    const request = new Request("http://localhost/countries?offset=-1");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 400 for limit=0", async () => {
+    const request = new Request("http://localhost/countries?limit=0");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(400);
+  });
+});
+
+describe("GET /countries happy path", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(new Response(JSON.stringify({ result: 42 }), { status: 200 }))
+      )
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns flags array and total", async () => {
+    const request = new Request("http://localhost/countries");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toHaveProperty("flags");
+    expect(data).toHaveProperty("total");
+    expect(Array.isArray(data.flags)).toBe(true);
+    expect(typeof data.total).toBe("number");
+  });
+
+  it("returns empty flags when offset exceeds total", async () => {
+    const request = new Request("http://localhost/countries?offset=9999");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.flags).toEqual([]);
+    expect(typeof data.total).toBe("number");
+  });
+});
+
 describe("POST /increment country tracking", () => {
   beforeEach(() => {
     vi.stubGlobal(
