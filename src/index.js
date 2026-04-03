@@ -11,7 +11,16 @@ export function countryToFlag(code) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const headers = { "Content-Type": "application/json" };
+    const headers = {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers });
+    }
 
     if (request.method === "GET" && url.pathname === "/total") {
       const res = await fetch(`${env.UPSTASH_URL}/GET/total_tokens_saved`, {
