@@ -852,15 +852,33 @@
       }
     }
 
+    // Map flag emoji → country name for tooltip.
+    const COUNTRY_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
+    function flagToCode(flag) {
+      const cps = [...flag].map(c => c.codePointAt(0));
+      if (cps.length !== 2) return null;
+      const a = String.fromCharCode(cps[0] - 0x1F1E6 + 65);
+      const b = String.fromCharCode(cps[1] - 0x1F1E6 + 65);
+      return a + b;
+    }
+    function flagToName(flag) {
+      const code = flagToCode(flag);
+      if (!code) return '';
+      try { return COUNTRY_NAMES.of(code) || code; } catch { return code; }
+    }
+
     // Fetch country flags
     async function fetchFlags() {
       try {
         const resp = await fetch(WORKER_URL + '/countries');
         const data = await resp.json();
+        const el = document.getElementById('flags');
         if (data.flags && data.flags.length > 0) {
-          document.getElementById('flags').textContent = data.flags.join(' ');
+          el.innerHTML = data.flags.map(f =>
+            `<span title="${flagToName(f)}" style="cursor:help">${f}</span>`
+          ).join(' ');
         } else {
-          document.getElementById('flags').textContent = '🌍';
+          el.textContent = '🌍';
         }
       } catch {
         document.getElementById('flags').textContent = '🌍';
