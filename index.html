@@ -180,6 +180,13 @@
       50% { opacity: 0; }
     }
 
+    .counter-impact {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-top: 8px;
+      letter-spacing: 0.02em;
+    }
+
     .counter-approx {
       font-size: 0.7rem;
       color: var(--text-dimmer);
@@ -536,7 +543,7 @@
         </div>
       </div>
       <div class="install-alt">
-        also via <code>brew install tokensave</code> or <code>scoop install tokensave</code>
+        also via <code>brew install aovestdipaperino/tap/tokensave</code> or <code>scoop bucket add tokensave https://github.com/aovestdipaperino/scoop-tokensave && scoop install tokensave</code>
       </div>
     </div>
   </section>
@@ -549,6 +556,7 @@
         <div class="counter-value" id="counter">
           <span class="loading">fetching_</span>
         </div>
+        <div class="counter-impact" id="impact"></div>
         <div class="counter-approx">~ approximate, aggregated across all tokensave users</div>
         <div class="flags-row">
           <span class="flags-label">Users around the world</span>
@@ -699,7 +707,7 @@
       </div>
       <div class="install-block" id="tab-brew">
         <div class="line"><span class="comment"># Install via Homebrew</span></div>
-        <div class="line"><span class="cmd">brew install tokensave</span></div>
+        <div class="line"><span class="cmd">brew install aovestdipaperino/tap/tokensave</span></div>
         <div class="line">&nbsp;</div>
         <div class="line"><span class="comment"># Index your project</span></div>
         <div class="line"><span class="cmd">cd your-project && tokensave init</span></div>
@@ -708,7 +716,8 @@
         <div class="line"><span class="cmd">tokensave install</span></div>
       </div>
       <div class="install-block" id="tab-scoop">
-        <div class="line"><span class="comment"># Install via Scoop (Windows)</span></div>
+        <div class="line"><span class="comment"># Add the tokensave bucket and install (Windows)</span></div>
+        <div class="line"><span class="cmd">scoop bucket add tokensave https://github.com/aovestdipaperino/scoop-tokensave</span></div>
         <div class="line"><span class="cmd">scoop install tokensave</span></div>
         <div class="line">&nbsp;</div>
         <div class="line"><span class="comment"># Index your project</span></div>
@@ -795,13 +804,36 @@
 
     function formatTokenCount(n) {
       if (n >= 1_000_000_000) {
-        return (n / 1_000_000_000).toFixed(1) + 'B';
+        return (n / 1_000_000_000).toFixed(2) + 'B';
       } else if (n >= 1_000_000) {
-        return (n / 1_000_000).toFixed(1) + 'M';
+        return (n / 1_000_000).toFixed(2) + 'M';
       } else if (n >= 1_000) {
-        return (n / 1_000).toFixed(1) + 'k';
+        return (n / 1_000).toFixed(2) + 'k';
       }
       return n.toString();
+    }
+
+    // Convert tokens saved into environmental equivalents.
+    // Rough model: 1M tokens ≈ 0.06 kWh (inference energy) ≈ 0.025 kg CO₂
+    // (US grid avg) ≈ 0.5 L water (data-centre cooling).
+    function formatImpact(tokens) {
+      const millions = tokens / 1_000_000;
+      const co2Kg = millions * 0.025;
+      const waterL = millions * 0.5;
+      const parts = [];
+      if (co2Kg >= 1000) {
+        parts.push('🌱 ' + (co2Kg / 1000).toFixed(1) + ' t CO₂');
+      } else if (co2Kg >= 1) {
+        parts.push('🌱 ' + co2Kg.toFixed(1) + ' kg CO₂');
+      } else {
+        parts.push('🌱 ' + (co2Kg * 1000).toFixed(0) + ' g CO₂');
+      }
+      if (waterL >= 1000) {
+        parts.push('💧 ' + (waterL / 1000).toFixed(1) + ' m³ water');
+      } else {
+        parts.push('💧 ' + waterL.toFixed(1) + ' L water');
+      }
+      return parts.join('&nbsp;&nbsp;&nbsp;');
     }
 
     // Fetch worldwide total
@@ -811,6 +843,7 @@
         const data = await resp.json();
         if (data.total != null) {
           animateCounter(data.total);
+          document.getElementById('impact').innerHTML = formatImpact(data.total);
         } else {
           document.getElementById('counter').textContent = '—';
         }
