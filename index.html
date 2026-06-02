@@ -636,9 +636,9 @@
           <p>No data leaves your machine. No API keys. No external services. Everything runs on local libSQL.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">😈</div>
-          <h3>Daemon Mode</h3>
-          <p>Background daemon watches for file changes and syncs automatically. Branch-aware tracking optional.</p>
+          <div class="feature-icon">🔄</div>
+          <h3>Always Fresh</h3>
+          <p>On-demand staleness checks keep your index current — no background daemon, no file watcher, no runaway CPU.</p>
         </div>
       </div>
     </div>
@@ -653,7 +653,7 @@
           <thead>
             <tr>
               <th>Mode</th>
-              <th>Daemon</th>
+              <th>Auto-refresh</th>
               <th>Branch tracking</th>
               <th>Best for</th>
             </tr>
@@ -663,13 +663,13 @@
               <td class="mode-name">Manual</td>
               <td class="dash">off</td>
               <td class="dash">—</td>
-              <td>Full control — run sync when you want</td>
+              <td>Full control — run <code>tokensave sync</code> when you want</td>
             </tr>
             <tr>
-              <td class="mode-name">Auto-sync</td>
+              <td class="mode-name">Automatic</td>
               <td class="check">on</td>
               <td class="dash">off</td>
-              <td>Fire-and-forget — syncs on file changes</td>
+              <td>Fire-and-forget — refreshes on tool calls &amp; commits</td>
             </tr>
             <tr>
               <td class="mode-name">Branch-aware</td>
@@ -701,9 +701,6 @@
         <div class="line">&nbsp;</div>
         <div class="line"><span class="comment"># Index your project (once per folder)</span></div>
         <div class="line"><span class="cmd">cd your-project && tokensave init</span></div>
-        <div class="line">&nbsp;</div>
-        <div class="line"><span class="comment"># (Optional) Start the background daemon</span></div>
-        <div class="line"><span class="cmd">tokensave daemon --enable-autostart</span></div>
       </div>
       <div class="install-block" id="tab-brew">
         <div class="line"><span class="comment"># Install via Homebrew</span></div>
