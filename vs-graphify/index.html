@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs Graphify — an honest comparison</title>
+  <meta name="description" content="A verified, side-by-side comparison of TokenSave and Graphify: two local code knowledge graphs for AI coding agents. Includes where Graphify wins.">
+  <meta property="og:title" content="TokenSave vs Graphify">
+  <meta property="og:description" content="Two local code knowledge graphs for AI agents, compared honestly — including where Graphify wins.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-code: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --text-dimmer: #6e7681;
+      --green: #3fb950;
+      --green-dim: #238636;
+      --green-glow: rgba(63, 185, 80, 0.15);
+      --blue: #58a6ff;
+      --purple: #bc8cff;
+      --orange: #d29922;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    a {
+      color: var(--green);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover { color: #56d364; }
+
+    /* ── Topbar ───────────────────────────────────── */
+
+    .topbar {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      font-size: 0.72rem;
+      color: var(--text-dimmer);
+    }
+
+    .topbar .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Hero ─────────────────────────────────────── */
+
+    .hero {
+      text-align: center;
+      padding: 64px 0 48px;
+    }
+
+    .hero h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 .vs {
+      color: var(--text-dimmer);
+      font-weight: 400;
+      margin: 0 8px;
+    }
+
+    .hero h1 .ts { color: var(--green); }
+    .hero h1 .gf { color: var(--blue); }
+
+    .hero p.lede {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      max-width: 660px;
+      margin: 0 auto 24px;
+      line-height: 1.75;
+    }
+
+    .stamp {
+      display: inline-block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Sections ─────────────────────────────────── */
+
+    .section { margin-bottom: 64px; }
+
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--green);
+      margin-bottom: 24px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title.blue { color: var(--blue); }
+
+    .prose p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    .prose p strong { color: var(--text); font-weight: 600; }
+    .prose p em { color: var(--text); font-style: normal; border-bottom: 1px dotted var(--text-dimmer); }
+
+    /* ── Comparison table ─────────────────────────── */
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 640px;
+      font-size: 0.72rem;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-dimmer);
+      font-weight: 600;
+      background: var(--bg-code);
+    }
+
+    thead th.ts { color: var(--green); }
+    thead th.gf { color: var(--blue); }
+
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+    tbody td.dim-label {
+      color: var(--text);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody td strong { color: var(--text); font-weight: 600; }
+
+    .none { color: var(--text-dimmer); }
+
+    /* ── Callout ──────────────────────────────────── */
+
+    .callout {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 6px;
+      padding: 18px 22px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      line-height: 1.75;
+      margin-bottom: 24px;
+    }
+
+    .callout.blue { border-left-color: var(--blue); }
+    .callout.orange { border-left-color: var(--orange); }
+    .callout strong { color: var(--text); }
+
+    /* ── Metric strip ─────────────────────────────── */
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .metric .value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--green);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .metric .label {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .metric .sub {
+      font-size: 0.62rem;
+      color: var(--text-dimmer);
+      margin-top: 8px;
+      line-height: 1.5;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* ── Code block ───────────────────────────────── */
+
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 18px;
+      overflow-x: auto;
+      font-size: 0.7rem;
+      line-height: 1.7;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+
+    pre .c { color: var(--text-dimmer); }
+    pre .g { color: var(--green); }
+
+    /* ── Point list ───────────────────────────────── */
+
+    .points { list-style: none; }
+
+    .points li {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      line-height: 1.75;
+    }
+
+    .points li h3 {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .points li h3::before {
+      content: '▸ ';
+      color: var(--green);
+      opacity: 0.7;
+    }
+
+    .points.blue li h3::before { color: var(--blue); }
+
+    .points li strong { color: var(--text); }
+
+    /* ── Verdict grid ─────────────────────────────── */
+
+    .verdict {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .verdict-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px;
+    }
+
+    .verdict-card h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .verdict-card.ts h3 { color: var(--green); }
+    .verdict-card.gf h3 { color: var(--blue); }
+
+    .verdict-card p {
+      font-size: 0.73rem;
+      color: var(--text-dim);
+      line-height: 1.75;
+    }
+
+    /* ── Footnotes ────────────────────────────────── */
+
+    .footnotes {
+      font-size: 0.68rem;
+      color: var(--text-dimmer);
+      line-height: 1.8;
+    }
+
+    .footnotes li {
+      margin-bottom: 8px;
+      margin-left: 18px;
+    }
+
+    /* ── Footer ───────────────────────────────────── */
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-dimmer);
+    }
+
+    footer .badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    footer .badge {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Responsive ───────────────────────────────── */
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 1.15rem; }
+      .metrics { grid-template-columns: 1fr; }
+      .verdict { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/">← tokensave.dev</a>
+      <span>comparison · updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">Graphify</span></h1>
+      <p class="lede">
+        Two local code knowledge graphs for AI coding agents. Same core idea — parse with tree-sitter,
+        skip the embeddings, let the agent query a graph instead of grepping. Different enough underneath
+        that the choice actually matters. This page includes the places where Graphify is the better tool.
+      </p>
+      <span class="stamp">TokenSave v7.12.1 · Graphify (graphify.com) as documented Sep 2026</span>
+    </div>
+
+    <div class="section prose">
+      <div class="callout orange">
+        <strong>Which Graphify?</strong> The name is crowded — there are at least three unrelated products
+        plus a third-party MCP wrapper. This page compares against
+        <a href="https://graphify.com/">graphify.com</a> (Graphify-Labs), the code-knowledge-graph-for-AI-assistants
+        one, since that is the only real overlap.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where they agree</h2>
+      <div class="prose">
+        <p>
+          Both tools reject the vector-database approach. Both parse on-device with tree-sitter, produce a typed
+          graph of files and symbols, cite real <code>file:line</code> locations, re-index only changed files, hook
+          into git to stay fresh, speak MCP, and are free and open source. If you are choosing between them, none of
+          that is a differentiator — it is the shared premise.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th class="ts">TokenSave</th>
+              <th class="gf">Graphify</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="dim-label">Implementation</td>
+              <td><strong>Rust</strong>, single static binary</td>
+              <td>Python (<code>uv tool install graphifyy</code>)</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Runtime deps</td>
+              <td><strong>None</strong> — OS libraries only</td>
+              <td>Python interpreter + dependency tree</td>
+            </tr>
+            <tr>
+              <td class="dim-label">License</td>
+              <td>MIT</td>
+              <td>Apache 2.0</td>
+            </tr>
+            <tr>
+              <td class="dim-label">MCP tools</td>
+              <td><strong>87</strong> (86 without <code>ast-grep</code>)</td>
+              <td>10</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Languages</td>
+              <td><strong>60</strong> across 3 build tiers</td>
+              <td>36</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Graph scope</td>
+              <td>Code (+ Markdown structure)</td>
+              <td><strong>Code, docs, SQL schemas, configs, PDFs</strong></td>
+            </tr>
+            <tr>
+              <td class="dim-label">LLM at index time</td>
+              <td><strong>Never</strong> — graph is a pure function of source</td>
+              <td>Yes, for INFERRED edges and community naming</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Edge semantics</td>
+              <td>Deterministic; ambiguity reported by a dedicated tool</td>
+              <td><strong>Provenance-tagged inline</strong>: EXTRACTED / INFERRED / AMBIGUOUS</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Retrieval control</td>
+              <td>Node, file and line caps</td>
+              <td><strong>First-class token budget</strong> on BFS/DFS traversal</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Analytics</td>
+              <td>Health score, Gini, DSM, hotspots, coupling, dead code, test-risk</td>
+              <td>Communities, god_nodes, shortest_path, graph_stats</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Write path</td>
+              <td><strong>Atomic edit primitives</strong>, re-index in place</td>
+              <td><span class="none">Read-only</span></td>
+            </tr>
+            <tr>
+              <td class="dim-label">Branches</td>
+              <td><strong>Per-branch graphs</strong>, cross-branch diff and search</td>
+              <td><span class="none">Not offered</span></td>
+            </tr>
+            <tr>
+              <td class="dim-label">PR tooling</td>
+              <td><code>pr_context</code>, <code>diff_context</code></td>
+              <td><strong>PR triage</strong> with CI status and blast radius</td>
+            </tr>
+            <tr>
+              <td class="dim-label">Business model</td>
+              <td><strong>None</strong> — fully local, unmetered</td>
+              <td>OSS engine + hosted Pro / Teams / Enterprise</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Rust is not a preference — it is what puts TokenSave in the critical path</h2>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="value">0.24s</div>
+          <div class="label">Full round trip</div>
+          <div class="sub">Process spawn, open DB, answer, exit — measured over repeated runs</div>
+        </div>
+        <div class="metric">
+          <div class="value">0</div>
+          <div class="label">Runtime deps</div>
+          <div class="sub">No Python, no Node, no external SQLite, no OpenSSL</div>
+        </div>
+        <div class="metric">
+          <div class="value">60</div>
+          <div class="label">Grammars linked in</div>
+          <div class="sub">Statically compiled into the binary, nothing to fetch</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>
+          <code>otool -L</code> on the shipped macOS binary links nothing outside the operating system:
+        </p>
+      </div>
+
+      <pre><span class="c">$ otool -L $(which tokensave)</span>
+  /System/Library/Frameworks/IOKit.framework/…/IOKit
+  /System/Library/Frameworks/Security.framework/…/Security
+  /System/Library/Frameworks/CoreFoundation.framework/…/CoreFoundation
+  /usr/lib/libiconv.2.dylib
+  /usr/lib/libSystem.B.dylib
+<span class="c">  # that is the whole list</span></pre>
+
+      <div class="prose">
+        <p>
+          That matters for one specific reason: <strong>it makes the tool cheap enough to invoke synchronously and
+          unconditionally.</strong> TokenSave installs a <code>PreToolUse</code> hook that fires on
+          <em>every</em> Agent, Grep and Bash call the agent makes, redirecting symbol-shaped searches into the graph
+          before they ever hit the filesystem. That design is only tolerable because the binary boots and answers in a
+          quarter of a second with no interpreter to warm up. Pay a Python cold start on every single tool call and the
+          latency tax compounds until the user uninstalls the tool.
+        </p>
+        <p>
+          The same property shows up in failure handling. TokenSave parses each file in a short-lived worker
+          subprocess: a tree-sitter grammar that segfaults or calls <code>abort()</code> kills one worker, the pool
+          respawns it, and the sync continues. A tool that sits in the critical path has to be a tool that cannot take
+          the session down with it.
+        </p>
+        <p>
+          So the honest claim is not "Rust is faster." It is that TokenSave is fast and self-contained enough to be a
+          <strong>reflex</strong>, while Graphify is architecturally confined to being a tool the agent calls
+          deliberately, when it remembers to. Those are different product categories.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where Graphify is the better tool</h2>
+      <div class="prose">
+        <p>
+          A comparison page that finds no faults in its own product is marketing. These are real, and two of them are
+          things TokenSave should arguably copy.
+        </p>
+      </div>
+      <ul class="points blue">
+        <li>
+          <h3>Non-code nodes</h3>
+          Graphify ingests documentation, SQL schemas, config files and PDFs alongside source, so it can link a
+          written spec to the function that implements it. <strong>TokenSave structurally cannot do this today</strong>
+          — it indexes code, with Markdown headers as structural nodes. If your real context lives in design docs, this
+          is the single biggest gap.
+        </li>
+        <li>
+          <h3>Token budget as a retrieval primitive</h3>
+          <code>query_graph</code> takes a literal token budget and the traversal honours it. TokenSave exposes
+          <code>max_nodes</code>, <code>max_code_lines</code> and <code>max_per_file</code> — useful, but proxies for
+          the thing you actually care about. For a tool whose entire pitch is token economy, that is a fair hit.
+        </li>
+        <li>
+          <h3>Edge provenance on every edge</h3>
+          Tagging an edge EXTRACTED, INFERRED or AMBIGUOUS inline is honest signalling an agent can reason about.
+          TokenSave keeps ambiguity in a separate tool, so it is available but not in front of you.
+        </li>
+        <li>
+          <h3>A small tool surface is itself a feature</h3>
+          87 tool definitions cost tokens on every single request and give the model more ways to choose wrong.
+          Ten tools do not. This cuts directly against TokenSave's own thesis, and it is the strongest argument
+          Graphify has.
+        </li>
+        <li>
+          <h3>PR triage</h3>
+          <code>list_prs</code> and <code>triage_prs</code> combine CI status, review state and graph blast radius into
+          a merge-risk ranking. TokenSave gives you the graph primitives to build that; Graphify ships it.
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li>
+          <h3>No model in the indexing path</h3>
+          Graphify's INFERRED edges require an LLM, which means cost, nondeterminism, and a rebuild that is not
+          reproducible. TokenSave's graph is a pure function of your source: index it twice, get the same graph.
+        </li>
+        <li>
+          <h3>It can write, and the graph stays true</h3>
+          Atomic edit primitives — unique-anchor replace, multi-replace, AST rewrite, anchored insert — re-index in
+          place. Graphify is read-only, so the agent drops back to raw file edits and the graph is stale until the next
+          update pass.
+        </li>
+        <li>
+          <h3>Branches and worktrees</h3>
+          Per-branch databases built by copying the nearest ancestor and syncing only the diff, plus cross-branch
+          search and diff without switching your checkout. This is the thing that bites hardest in multi-agent work,
+          and Graphify has no answer to it.
+        </li>
+        <li>
+          <h3>Falsifiable savings</h3>
+          <code>tokensave bench</code> ships a fixed query set and reports retrieval savings against a full-file
+          baseline; an append-only ledger records every MCP call so <code>tokensave gain</code> can price the
+          difference. The claim is checkable on your own repo rather than asserted.
+        </li>
+        <li>
+          <h3>Staleness checked per call</h3>
+          Every MCP call does an on-demand freshness check with a short cooldown, plus a catch-up sync when the server
+          connects — rather than trusting that the last index still reflects the tree.
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">The incentive difference</h2>
+      <div class="prose">
+        <p>
+          This is the structural distinction the feature table cannot capture: <strong>TokenSave has no business model
+          to protect.</strong>
+        </p>
+        <p>
+          Graphify's open-source engine is the on-ramp to a per-seat hosted product. That is a legitimate way to fund
+          a tool, and it is how most infrastructure gets maintained. But it sets a permanent gravitational pull: the
+          capabilities that justify a seat price — shared graphs, hosted rebuilds, team dashboards, SSO, PR review —
+          accrue to the cloud side, and the local engine's job becomes to be good enough to adopt and not so good that
+          nobody upgrades. Nobody has to act in bad faith for that to happen. It is simply where the incentive points.
+        </p>
+        <p>
+          TokenSave is not looking for a way to sustain itself, so no feature is held back to create a paid tier — all
+          87 tools are the product. There is no account, no telemetry, and no monthly call quota. That last one is not
+          abstract: metered plans cap MCP calls per month, and a tool that sits in the agent's critical path making
+          thousands of calls a day is fundamentally incompatible with a meter.
+        </p>
+        <div class="callout orange">
+          <strong>The fair flip side.</strong> No business model also means no funded roadmap and a bus factor of one.
+          Graphify's commercial tier is precisely what would pay for its long-term maintenance. Which risk you prefer —
+          feature-gating pressure, or funding fragility — is a genuine trade-off, not a slam dunk. But for the narrow
+          property that matters here, <em>staying fast, local and unmetered in the critical path</em>, the incentives
+          only line up on one side.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose Graphify if…</h3>
+          <p>
+            your context genuinely lives outside the code — specs, schemas, PDFs — and linking those to
+            implementations is the problem you are solving. Or you want graph-aware PR triage out of the box, you
+            prefer a deliberately small tool surface, or you want a hosted product with a support contract behind it.
+          </p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if…</h3>
+          <p>
+            you want the graph in the agent's critical path rather than beside it: no interpreter, no metered calls,
+            a deterministic index, an agent that can edit as well as read, and per-branch graphs that survive parallel
+            worktrees. And if you would rather verify the savings than be told about them.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at
+          <code>origin/master</code>, not taken from its own README:
+        </p>
+      </div>
+      <ul class="footnotes">
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+        <li><strong>No token-budget parameter</strong> — confirmed by searching <code>src/mcp/</code> for <code>token_budget</code> and <code>max_tokens</code>; no matches. The gap above is real.</li>
+        <li><strong>Graphify figures</strong> — taken from its own published documentation, FAQ and MCP tool reference in September 2026, and not independently verified. If anything here is wrong or out of date, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS · Linux · Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;·&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;·&nbsp;
+      <a href="https://graphify.com/">graphify.com</a>
+    </div>
+  </footer>
+
+</body>
+</html>
