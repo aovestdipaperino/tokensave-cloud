@@ -33,29 +33,30 @@
     <div class="hero">
       <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">everything else</span></h1>
       <p class="lede">
-        Seven honest comparisons against the tools that solve the same problem. Each page states where the other tool
+        Eight honest comparisons against the tools working on the same problem. Each page states where the other tool
         is better, because a comparison that finds no faults in its own product is marketing rather than information.
+        Two of these tools are not competitors at all, and they are filed accordingly.
       </p>
       <span class="stamp">All TokenSave figures verified against v7.12.1 source &middot; 17 Sep 2026</span>
     </div>
 
     <div class="section">
-      <h2 class="section-title">The comparisons</h2>
+      <h2 class="section-title">Tools that do the same job</h2>
       <div class="vs-grid">
-        <a class="vs-card" href="/vs-graphify">
-          <h3>vs Graphify</h3>
-          <div class="kind">code knowledge graph</div>
-          <p>Closest in premise: local tree-sitter parsing, no embeddings, a graph the agent traverses. Differs on non-code nodes, token budgets and a hosted commercial tier.</p>
-        </a>
-        <a class="vs-card" href="/vs-leanctx">
-          <h3>vs LeanCTX</h3>
-          <div class="kind">context runtime &middot; also Rust</div>
-          <p>The closest competitor. Also a single Rust binary, more widely adopted, and broader across shell output and file reads. TokenSave's usual native-binary argument does not apply here.</p>
+        <a class="vs-card" href="/vs-serena">
+          <h3>vs Serena</h3>
+          <div class="kind">LSP-backed semantic toolkit</div>
+          <p>The strongest technical challenge here. Real type information through language servers, so it is exact where TokenSave's resolver is guessing — and it refactors properly.</p>
         </a>
         <a class="vs-card" href="/vs-code-review-graph">
           <h3>vs code-review-graph</h3>
           <div class="kind">code knowledge graph</div>
           <p>Closest in philosophy and far larger — roughly 31,500 stars. Multi-repo, execution flows, Leiden communities and published accuracy benchmarks.</p>
+        </a>
+        <a class="vs-card" href="/vs-graphify">
+          <h3>vs Graphify</h3>
+          <div class="kind">code knowledge graph</div>
+          <p>Closest in premise: local tree-sitter parsing, no embeddings, a graph the agent traverses. Differs on non-code nodes, token budgets and a hosted commercial tier.</p>
         </a>
         <a class="vs-card" href="/vs-codegraph">
           <h3>vs CodeGraph</h3>
@@ -72,10 +73,28 @@
           <div class="kind">context prefill layer</div>
           <p>The one genuine philosophical opponent: it pre-loads context instead of letting the agent ask. Proprietary core, two runtimes, file-level graph.</p>
         </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Tools that do a different job</h2>
+      <div class="prose">
+        <p>
+          These two get compared to TokenSave often, but they solve adjacent problems rather than the same one.
+          Running them alongside it is a coherent setup, not a contradiction &mdash; so these pages are written as
+          "what each layer is for" rather than as a contest.
+        </p>
+      </div>
+      <div class="vs-grid">
+        <a class="vs-card" href="/vs-leanctx">
+          <h3>vs LeanCTX</h3>
+          <div class="kind">context gate &middot; also Rust</div>
+          <p>Compresses what the agent reads — files, shell output, the request itself. TokenSave goes deep on code structure. Different layers; most people want both.</p>
+        </a>
         <a class="vs-card" href="/vs-openwolf">
           <h3>vs OpenWolf</h3>
           <div class="kind">project memory &middot; not a graph</div>
-          <p>A different category — portable cross-agent memory and token accounting read from harness transcripts. Composes with TokenSave rather than competing.</p>
+          <p>Portable cross-agent memory and token accounting read from harness transcripts. Remembers what a graph cannot derive.</p>
         </a>
       </div>
     </div>
@@ -89,10 +108,12 @@
           became 87 rather than the "80+" the documentation claims, and the language count 60 rather than "50+".
         </p>
         <p>
-          <strong>Second, the other tool's advantages get stated without hedging.</strong> CodeGraph's one-tool design
-          is a direct argument against TokenSave's 87. code-review-graph has fifty times the users. LeanCTX is also a
-          single Rust binary, which retires TokenSave's favourite differentiator entirely. token-savior scores higher
-          on the shared benchmark. Those all appear on their pages, in those words.
+          <strong>Second, the other tool's advantages get stated without hedging.</strong> Serena resolves references
+          exactly where TokenSave's resolver admits to guessing, and refactors properly &mdash; the concession is
+          quoted from TokenSave's own design doc. CodeGraph's one-tool design is a direct argument against TokenSave's
+          87. code-review-graph has fifty times the users. LeanCTX is also a single Rust binary, which retires
+          TokenSave's favourite differentiator entirely. token-savior scores higher on the shared benchmark. Those all
+          appear on their pages, in those words.
         </p>
         <p>
           <strong>Third, competitors' own figures are labelled as theirs.</strong> Where a number comes from another

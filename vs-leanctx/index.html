@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TokenSave vs LeanCTX — an honest comparison</title>
-  <meta name="description" content="The closest competitor: also Rust, also a single binary, more widely adopted. Where TokenSave's usual arguments stop working.">
+  <title>TokenSave vs LeanCTX — different layers</title>
+  <meta name="description" content="LeanCTX gates what the agent reads; TokenSave goes deep on code structure. Mostly complementary, with honest notes on where they overlap.">
   <meta property="og:title" content="TokenSave vs LeanCTX">
-  <meta property="og:description" content="The closest competitor: also Rust, also a single binary, more widely adopted. Where TokenSave's usual arguments stop working.">
+  <meta property="og:description" content="LeanCTX gates what the agent reads; TokenSave goes deep on code structure. Mostly complementary, with honest notes on where they overlap.">
   <meta property="og:type" content="article">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
   <link rel="stylesheet" href="/vs-assets/style.css">
@@ -32,17 +32,31 @@
 
     <div class="hero">
       <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">LeanCTX</span></h1>
-      <p class="lede">LeanCTX is the closest competitor TokenSave has, and the one where its usual arguments land weakest. It is also written in Rust. It also ships as a single binary with no runtime. It is more popular by every public measure. The difference is not implementation — it is scope.</p>
+      <p class="lede">These two are mostly complementary, and the honest headline is that running both is the best configuration on this page. LeanCTX is a gate on everything flowing into the model — file reads, shell output, the request itself. TokenSave is depth on one thing: the structure of your code. They meet at the edges and compete almost nowhere.</p>
       <span class="stamp">TokenSave v7.12.1 &middot; LeanCTX / lean-ctx v3.10.2 (crates.io, Sep 2026)</span>
     </div>
 
     <div class="section prose">
+      <div class="callout purple">
+        <strong>Different layers, not rival products.</strong> LeanCTX describes itself as an AI Value Gate: it
+        understands the task, routes and compresses context, remembers across sessions, and measures what that cost.
+        Its centre of gravity is agent <em>I/O</em> — cached re-reads, command-output compression, a
+        prompt-cache-safe proxy. TokenSave's centre of gravity is a symbol-level graph of your code: call edges, type
+        hierarchies, impact radius, code health. Neither is trying to be the other. If your agent both reads too much
+        and understands your code too little, those are two problems and these are two tools.
+      </div>
+      <p>
+        There is real overlap, and pretending otherwise would be dishonest: both do impact analysis, both keep a
+        local savings ledger with a live dashboard (<code>lean-ctx gain</code> and <code>tokensave gain</code> are
+        near-namesakes), and LeanCTX's <code>map</code> and <code>signatures</code> read modes cover some of what
+        <code>tokensave_module_api</code> does. That overlap is a thin slice of either tool.
+      </p>
       <div class="callout orange">
-        <strong>The Rust argument does not work here.</strong> Everywhere else on this site, "single native binary,
-        no runtime, fast enough to sit in the agent's critical path" is TokenSave's sharpest differentiator. Against
-        LeanCTX it differentiates nothing: <code>cargo install lean-ctx</code>, Apache-2.0, same shape, same
-        no-runtime install story. And on adoption LeanCTX is ahead — roughly 3,800 GitHub stars against 640, and
-        about 17,600 crates.io downloads against 5,400. This page has to be won on scope and depth or not at all.
+        <strong>And the Rust argument does not work here.</strong> Everywhere else on this site, "single native
+        binary, no runtime, fast enough to sit in the agent's critical path" is TokenSave's sharpest differentiator.
+        Against LeanCTX it differentiates nothing: <code>cargo install lean-ctx</code>, Apache-2.0, same shape, same
+        no-runtime install story. LeanCTX is also ahead on adoption — roughly 3,800 GitHub stars against 640, and
+        about 17,600 crates.io downloads against 5,400.
       </div>
     </div>
 
@@ -74,7 +88,7 @@
     </div>
 
     <div class="section">
-      <h2 class="section-title blue">Where LeanCTX is the better tool</h2>
+      <h2 class="section-title blue">What LeanCTX does that TokenSave does not</h2>
       <ul class="points blue">
         <li><h3>It covers the other half of token spend</h3>TokenSave optimises one thing: the agent reading code. LeanCTX also compresses shell output through 95+ declarative patterns and offers mode-aware file reads — <code>map</code>, <code>signatures</code>, <code>diff</code>, <code>entropy</code> — as a replacement for raw <code>Read</code>. On a real session, Bash results and large-file reads are a large share of the budget, and TokenSave simply does not address them.</li>
         <li><h3>Hybrid search with embeddings</h3>Reciprocal rank fusion over lexical and vector recall. TokenSave's search is FTS5 plus graph proximity, with the <code>keywords</code> argument as a manual workaround for conceptual queries. On "where do we handle retries?", where the code says <code>backoff</code>, LeanCTX wins.</li>
@@ -85,7 +99,7 @@
     </div>
 
     <div class="section">
-      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <h2 class="section-title">What TokenSave does that LeanCTX does not</h2>
       <ul class="points">
         <li><h3>The graph goes deeper</h3>Type hierarchies and inheritance depth, cyclomatic and cognitive complexity, Halstead, maintainability index, CRAP, design-structure matrix, Gini inequality, dependency depth, risk-weighted test gaps, a composite health score, dead code, circular dependencies, god-class detection. LeanCTX does graph and impact analysis; it does not do code health.</li>
         <li><h3>Multi-branch graphs</h3>Per-branch databases created by copying the nearest ancestor and syncing only the diff, with cross-branch search and diff. LeanCTX has no branch model, and this is the clearest functional gap between them.</li>
@@ -121,12 +135,27 @@
       <h2 class="section-title">Which should you use</h2>
       <div class="verdict">
         <div class="verdict-card gf">
-          <h3>Choose LeanCTX if&hellip;</h3>
-          <p>you want one tool covering the whole context surface — code, file reads, shell output — with embedding-backed search, portable context bundles and persistent knowledge facts, backed by the larger community.</p>
+          <h3>Reach for LeanCTX when&hellip;</h3>
+          <p>
+            the agent is reading too much: it re-reads unchanged files, drags raw <code>cargo</code> and
+            <code>git</code> output into the window, and burns the budget before it gets to thinking. That is an I/O
+            problem, and LeanCTX is built for it.
+          </p>
         </div>
         <div class="verdict-card ts">
-          <h3>Choose TokenSave if&hellip;</h3>
-          <p>your bottleneck is specifically structural understanding of code: deep per-symbol metrics, type hierarchies, code-health analytics, branch-aware graphs, and an agent that edits with the graph staying true. The two are close enough that running both is defensible.</p>
+          <h3>Reach for TokenSave when&hellip;</h3>
+          <p>
+            the agent does not understand the code: it greps, guesses, misses callers, and breaks things that
+            depended on the symbol it just changed. That is a structure problem, and compression will not fix it.
+          </p>
+        </div>
+      </div>
+      <div class="prose" style="margin-top: 16px;">
+        <div class="callout purple">
+          <strong>Most people have both problems.</strong> Install both. They hook different parts of the agent
+          lifecycle and neither's design conflicts with the other's — the only thing to watch is that you will end up
+          with two savings ledgers measuring overlapping work, so do not add the two numbers together and believe
+          the total.
         </div>
       </div>
     </div>

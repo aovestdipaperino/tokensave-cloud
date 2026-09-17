@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs Serena — an honest comparison</title>
+  <meta name="description" content="Serena uses language servers, so it resolves references exactly where TokenSave's resolver guesses — and it refactors properly. The largest concessions on the site.">
+  <meta property="og:title" content="TokenSave vs Serena">
+  <meta property="og:description" content="Serena uses language servers, so it resolves references exactly where TokenSave's resolver guesses — and it refactors properly. The largest concessions on the site.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs Serena &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">Serena</span></h1>
+      <p class="lede">Serena is the strongest technical challenge on this site. It reaches semantic understanding through the Language Server Protocol rather than through its own parsers — which means that on the specific question of resolution accuracy, it is right where TokenSave is guessing. It also refactors properly. This is the page where the concessions are largest.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; Serena (oraios/serena), Sep 2026</span>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">The honest core of it: LSP beats tree-sitter at resolution</h2>
+      <div class="prose">
+        <p>
+          TokenSave resolves cross-file edges with <code>ReferenceResolver</code>, which matches unresolved reference
+          names against known node and qualified names. <strong>That is a string-matching heuristic</strong>, and
+          TokenSave's own design document is blunt about where it breaks:
+        </p>
+      </div>
+      <div class="callout orange">
+        "<strong>Overloaded names.</strong> Three structs named <code>Config</code> in different modules. The
+        resolver picks the one in the same file or the first match, which is often wrong.
+        <strong>Method dispatch.</strong> <code>validator.check(input)</code> could resolve to any <code>check</code>
+        method. Without type information, the resolver guesses based on proximity.
+        <strong>Re-exports and aliases.</strong> <code>use crate::auth::User as AuthUser</code> &mdash; the resolver
+        tries suffix matching but can still miss. <strong>Cross-crate references.</strong> Unresolvable from AST
+        alone."
+        <br><br>
+        &mdash; <code>docs/LSP-INTEGRATION.md</code>, TokenSave's own design doc
+      </div>
+      <div class="prose">
+        <p>
+          A language server has none of these problems, because it has the type information. One
+          <code>textDocument/definition</code> request returns the exact target. Serena is built on that from the
+          start; TokenSave has an LSP pass <em>designed</em> to fix this and it is <strong>not shipped</strong> &mdash;
+          there is currently no LSP code in the MCP server at all. On resolution accuracy, Serena is simply ahead,
+          and will stay ahead until that design doc becomes code.
+        </p>
+        <p>
+          The trade TokenSave makes in exchange is real, though. A language server must be installed per language,
+          started, and warmed before it answers; on a large project that first request can take many seconds, and
+          the server holds significant memory for as long as it runs. TokenSave's graph is precomputed and on disk,
+          so a query costs a database lookup. Which of those you want depends on whether you value exactness or
+          latency more &mdash; and on whether the aggregate questions below matter to you at all.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">Serena</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Semantic backend</td><td>Tree-sitter ASTs + heuristic resolution</td><td><strong>Language servers (LSP)</strong>, real type info</td></tr>
+            <tr><td class="dim-label">Resolution accuracy</td><td>Heuristic; documented failure modes</td><td><strong>Compiler-grade</strong></td></tr>
+            <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td>Python 3.13+ with <code>uv</code></td></tr>
+            <tr><td class="dim-label">Runtime deps</td><td><strong>None</strong></td><td>Python, <code>uv</code>, plus a language server per language</td></tr>
+            <tr><td class="dim-label">Cold start</td><td><strong>~0.24 s, precomputed graph</strong></td><td>Language server startup and warm-up</td></tr>
+            <tr><td class="dim-label">License</td><td><strong>MIT</strong></td><td>GPL-3.0-or-later (app), MIT (SolidLSP); <strong>CLA required</strong></td></tr>
+            <tr><td class="dim-label">Adoption</td><td>~640 stars</td><td><strong>~29,500 stars</strong></td></tr>
+            <tr><td class="dim-label">Languages</td><td><strong>60</strong>, no server needed</td><td>40+, each needing its language server</td></tr>
+            <tr><td class="dim-label">Refactoring</td><td><code>rename_preview</code> &mdash; graph-derived, advisory</td><td><strong>Atomic rename, move, inline, safe delete</strong></td></tr>
+            <tr><td class="dim-label">Symbol editing</td><td>Anchor-based and AST rewrite primitives</td><td><strong>Symbol-level: replace body, insert before/after</strong></td></tr>
+            <tr><td class="dim-label">Diagnostics</td><td><span class="none">None</span></td><td><strong>Live, from the language server</strong></td></tr>
+            <tr><td class="dim-label">Aggregate analytics</td><td><strong>Health score, Gini, DSM, hotspots, dead code, test-risk</strong></td><td><span class="none">Not the model</span></td></tr>
+            <tr><td class="dim-label">Multi-branch</td><td><strong>Per-branch graphs, cross-branch diff</strong></td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Memories</td><td>Decisions, code areas, FTS recall</td><td><strong>Memories + onboarding, cross-project</strong></td></tr>
+            <tr><td class="dim-label">Commercial component</td><td>None</td><td>Optional paid JetBrains backend</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where Serena is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>It is right where TokenSave guesses</h3>Covered above and worth repeating: overloads, method dispatch, re-exports and cross-crate references are documented weaknesses of TokenSave's resolver and non-problems for a language server. If your codebase has three things called <code>Config</code>, this difference is not academic.</li>
+        <li><h3>Real refactoring, not a preview</h3>Cross-file rename, move, inline and safe delete as atomic operations, with the language server guaranteeing every reference is updated. TokenSave's <code>rename_preview</code> shows you what its graph believes would be affected and leaves the editing to you &mdash; and its graph is the heuristic one. This is the single biggest capability gap on this page.</li>
+        <li><h3>Live diagnostics</h3>Serena surfaces the language server's own errors and warnings, so the agent can see it broke something without running a build. TokenSave has no equivalent.</li>
+        <li><h3>Symbol-level editing primitives</h3>"Replace this symbol's body", "insert after this symbol" &mdash; addressed semantically rather than by text anchor. TokenSave has <code>replace_symbol</code> and <code>insert_at_symbol</code> too, but resolved through the heuristic graph rather than a language server.</li>
+        <li><h3>A community fifty times larger</h3>About 29,500 stars against 640, and active daily. That is a genuine argument on its own.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>Questions about the whole codebase at once</h3>This is the real dividing line. LSP answers questions about <em>a symbol</em>: definition, references, type hierarchy. It has no cheap way to answer "rank every file by churn-weighted complexity", "where is the dependency graph circular", "which symbols are dead", "what is the risk-weighted test gap", or "show me the design-structure matrix". Those need a precomputed graph over the entire project, which is exactly what TokenSave is.</li>
+        <li><h3>No language servers to install, start or feed</h3>Serena needs a working language server for each language you use &mdash; installed, compatible, and warmed up. TokenSave bundles 60 grammars in the binary and needs nothing else. On a polyglot repo, or in CI, or on a machine where the Rust analyzer eats several gigabytes, that difference is the whole ballgame.</li>
+        <li><h3>Latency low enough for the critical path</h3>A quarter-second round trip with no warm-up is what lets TokenSave sit on a <code>PreToolUse</code> hook that fires on every Agent, Grep and Bash call. You cannot put a cold language server there.</li>
+        <li><h3>Licensing</h3>TokenSave is MIT. Serena's application is GPL-3.0-or-later and contributions require accepting a CLA. For a tool embedded in a commercial development workflow, that is worth a lawyer's five minutes before adoption rather than after.</li>
+        <li><h3>Multi-branch graphs</h3>Per-branch databases with cross-branch search and diff. Serena works against your current checkout.</li>
+        <li><h3>Git-aware and porting tools</h3>Commit context, PR context, diff context, changelog, plus port status and ordering for migration work. None of these are things a language server is positioned to answer.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Honestly: these compose well</h2>
+      <div class="prose">
+        <div class="callout purple">
+          Serena for exactness on a symbol and for refactoring it safely. TokenSave for aggregate structure, code
+          health, branch awareness and cheap reflexive lookups. The overlap &mdash; find a symbol, list its callers
+          &mdash; is the part both do, and there Serena is more accurate while TokenSave is faster and needs no
+          server. Running both is a coherent setup, and if you do, prefer Serena's answer whenever the two disagree
+          about where a reference points.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose Serena if&hellip;</h3>
+          <p>you want compiler-grade accuracy and real refactoring &mdash; atomic cross-file renames and moves, live diagnostics &mdash; you work mainly in one or two languages with good language servers, and GPL is acceptable in your setting.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>you want questions answered about the whole codebase rather than one symbol, you work across many languages or in CI where per-language servers are impractical, you need branch-aware graphs, or you want lookups cheap enough to run on every single tool call.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>Serena figures</strong> — the <code>oraios/serena</code> repository metadata and README, September 2026. Tool categories and refactoring claims are Serena's own and were not independently benchmarked here.</li><li><strong>The LSP concession</strong> — quoted from TokenSave's own <code>docs/LSP-INTEGRATION.md</code>. That document describes a design, not shipped behaviour: at v7.12.1 there is no LSP code in the MCP server, confirmed by searching <code>src/mcp/</code>.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>
