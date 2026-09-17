@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs CodeGraph — an honest comparison</title>
+  <meta name="description" content="TokenSave began as a Rust rewrite of CodeGraph. CodeGraph now has a Rust kernel too. A verified comparison, including where CodeGraph wins.">
+  <meta property="og:title" content="TokenSave vs CodeGraph">
+  <meta property="og:description" content="TokenSave began as a Rust rewrite of CodeGraph. CodeGraph now has a Rust kernel too. A verified comparison, including where CodeGraph wins.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs CodeGraph &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">CodeGraph</span></h1>
+      <p class="lede">CodeGraph is where TokenSave came from — TokenSave began life as a ground-up Rust rewrite of it. Since then CodeGraph has itself moved to a Rust kernel and bundles its own runtime, which retires the single biggest claim TokenSave used to make against it. They have converged on architecture and diverged hard on philosophy.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; CodeGraph v1.6.0 (npm, Sep 2026)</span>
+    </div>
+
+    <div class="section prose">
+      <div class="callout orange">
+        <strong>A correction we owe CodeGraph.</strong> TokenSave's own docs have long said that "every alternative
+        requires a runtime" and described CodeGraph as Node.js 18+ with ~80&nbsp;MB of <code>node_modules</code> and
+        WASM. <em>That is no longer true.</em> CodeGraph now ships a Rust kernel for parsing and extraction and
+        bundles its own runtime — "nothing to compile, no native build, works the same everywhere." On the
+        zero-dependency axis the two tools are now equals, and any page here claiming otherwise is out of date.
+      </div>
+      <p>
+        Credit where it is owed: CodeGraph pioneered this approach and TokenSave exists because of it. What follows
+        is a comparison between two tools that now agree on how to ship and disagree on what to expose.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">CodeGraph</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Origin</td><td>Rust rewrite of CodeGraph, diverged since</td><td><strong>The original</strong></td></tr>
+            <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td><strong>Rust kernel</strong> + TS tooling, bundled runtime</td></tr>
+            <tr><td class="dim-label">Runtime deps</td><td>None</td><td><strong>None</strong> — bundles its own</td></tr>
+            <tr><td class="dim-label">License</td><td>MIT</td><td>MIT</td></tr>
+            <tr><td class="dim-label">MCP tools</td><td><strong>87</strong></td><td>1 primary (<code>codegraph_explore</code>), others unlisted</td></tr>
+            <tr><td class="dim-label">Languages</td><td><strong>60</strong> across 3 build tiers</td><td>30+</td></tr>
+            <tr><td class="dim-label">Tool philosophy</td><td>Many specialised tools, agent composes them</td><td><strong>One tool that answers everything</strong></td></tr>
+            <tr><td class="dim-label">Semantic search</td><td>Keyword expansion over FTS5, zero-cost</td><td><strong>Local embeddings</strong> (ONNX)</td></tr>
+            <tr><td class="dim-label">Freshness</td><td>Staleness check per MCP call + catch-up sync</td><td><strong>Native OS file watcher</strong></td></tr>
+            <tr><td class="dim-label">Multi-branch</td><td><strong>Per-branch graphs</strong>, cross-branch diff</td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Edit primitives</td><td><strong>4 atomic writers</strong>, re-index in place</td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Health analytics</td><td><strong>Composite score, Gini, DSM, test-risk</strong></td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Agent integrations</td><td><strong>12+</strong>, native config per agent</td><td>Claude Code</td></tr>
+            <tr><td class="dim-label">Visualizer</td><td>Removed in v4.0.1</td><td><strong>Yes</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where CodeGraph is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>One tool instead of eighty-seven</h3>CodeGraph deliberately exposes <code>codegraph_explore</code> as its single listed tool: ask a structural question, get source, call paths and blast radius in one call. TokenSave's 87 definitions cost tokens on every request and give the model more ways to choose wrong. <strong>This is the strongest argument against TokenSave's whole design</strong>, and it comes from the project TokenSave forked from.</li>
+        <li><h3>A real file watcher</h3>CodeGraph uses native OS notifications — FSEvents, inotify, ReadDirectoryChangesW — with a short debounce, so the index tracks the tree continuously. TokenSave checks staleness on demand per MCP call, which means freshness is tied to tool activity rather than to the filesystem.</li>
+        <li><h3>Embedding-backed semantic search</h3>CodeGraph runs a local embedding model for conceptual recall. TokenSave's answer is agent-driven keyword expansion — free and deterministic, but genuinely weaker when the query shares no vocabulary with the code.</li>
+        <li><h3>A graph visualizer</h3>CodeGraph ships one. TokenSave removed its own in v4.0.1 to cut scope. For a human trying to understand an unfamiliar repo rather than an agent querying it, that is a real loss.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>Depth of the query surface</h3>One general tool answers general questions. "What breaks if I rename this?", "which tests cover this symbol?", "where is the dependency structure circular?" and "what is the risk-weighted test gap?" are different questions with different answers, and TokenSave has a purpose-built tool for each.</li>
+        <li><h3>Multi-branch graphs</h3>Per-branch databases built by copying the nearest ancestor and syncing only the diff, plus cross-branch search and diff without switching your checkout. CodeGraph indexes the current checkout only.</li>
+        <li><h3>It can write</h3>Four atomic edit primitives that re-index in place, so the graph stays true after the agent changes code. CodeGraph is read-only.</li>
+        <li><h3>Code-health analytics</h3>Composite health score, Gini inequality, design-structure matrix, dependency depth, risk-weighted test gaps, session deltas. CodeGraph has none of this.</li>
+        <li><h3>Agent breadth</h3>12+ agents with native config formats, hooks and permissions, against CodeGraph's Claude Code focus.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose CodeGraph if&hellip;</h3>
+          <p>you want the minimal surface: one tool, one call, an answer — and you value a continuous file watcher and embedding-based recall over breadth. If you only use Claude Code and want the smallest thing that works, this is a very defensible choice.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>you want the graph to answer specific structural questions rather than one general one, you work across branches or worktrees, you want the agent to edit as well as read, or you need code-health metrics and broad agent support.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>CodeGraph figures</strong> — npm <code>@colbymchenry/codegraph</code> v1.6.0 metadata and the project README, September 2026. The Rust-kernel and bundled-runtime claims are CodeGraph's own and were not independently benchmarked here.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>

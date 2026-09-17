@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs token-savior — an honest comparison</title>
+  <meta name="description" content="Similar names, different engineering. Includes the agent benchmark where token-savior scores higher than TokenSave.">
+  <meta property="og:title" content="TokenSave vs token-savior">
+  <meta property="og:description" content="Similar names, different engineering. Includes the agent benchmark where token-savior scores higher than TokenSave.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs token-savior &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">token-savior</span></h1>
+      <p class="lede">Confusingly similar names, genuinely different engineering. token-savior indexes with hand-written regex annotators and compacts shell output; TokenSave parses with tree-sitter and goes deep on the graph. There is a head-to-head agent benchmark, and it does not go entirely TokenSave's way.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; token-savior v1.0.0 (PyPI, Sep 2026)</span>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">The benchmark, including the part we lose</h2>
+      <div class="prose">
+        <p>
+          Both tools were run through <code>Mibayy/tsbench</code>, a 96-task agent benchmark authored by
+          token-savior's own developer. The results:
+        </p>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="value" style="color: var(--blue);">188 / 192</div>
+          <div class="label">token-savior score</div>
+          <div class="sub">97.9% &mdash; higher than TokenSave</div>
+        </div>
+        <div class="metric">
+          <div class="value">184 / 192</div>
+          <div class="label">TokenSave score</div>
+          <div class="sub">95.8% &mdash; four tasks behind</div>
+        </div>
+        <div class="metric">
+          <div class="value">695</div>
+          <div class="label">TokenSave tokens/task</div>
+          <div class="sub">against 3,395 for token-savior &mdash; 4.9x fewer</div>
+        </div>
+      </div>
+      <div class="prose">
+        <p>
+          <strong>token-savior scores higher on task success.</strong> TokenSave uses roughly a fifth of the active
+          tokens to get within four tasks of it. Which number matters depends on what you are optimising: if the last
+          2% of task completion is worth 5x the token spend, token-savior is the better buy, and the benchmark says
+          so. The caveat that applies to both directions is that the benchmark was written by one of the two vendors.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">token-savior</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Implementation</td><td>Rust + libSQL + tree-sitter</td><td>Python 3.11+, in-memory dict</td></tr>
+            <tr><td class="dim-label">License</td><td>MIT</td><td>MIT</td></tr>
+            <tr><td class="dim-label">Parsing strategy</td><td><strong>tree-sitter ASTs</strong>, full type and scope info</td><td>Hand-written regex annotators</td></tr>
+            <tr><td class="dim-label">Languages</td><td><strong>60</strong></td><td>7, plus 8 config formats</td></tr>
+            <tr><td class="dim-label">MCP tools</td><td><strong>87</strong></td><td>68 full, 15 in the default optimised mode</td></tr>
+            <tr><td class="dim-label">Edge kinds</td><td><strong>calls, uses, implements, extends, annotates, derives, receives</strong></td><td>Name-occurrence level</td></tr>
+            <tr><td class="dim-label">Health analytics</td><td><strong>11 dedicated tools</strong></td><td>2 (dead code, complexity)</td></tr>
+            <tr><td class="dim-label">Shell-output compaction</td><td>Out of scope &mdash; pair with <a href="https://github.com/aovestdipaperino/rtk">RTK</a></td><td><strong>Yes, 34 compactors</strong></td></tr>
+            <tr><td class="dim-label">Config / Docker linting</td><td><span class="none">No</span></td><td><strong>Yes</strong></td></tr>
+            <tr><td class="dim-label">Branch awareness</td><td><strong>Per-branch DBs</strong></td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Index freshness</td><td><strong>Staleness check per call + catch-up sync</strong></td><td><span class="none">No automatic refresh</span></td></tr>
+            <tr><td class="dim-label">Cold index (FastAPI)</td><td><strong>2.15 s</strong></td><td>6.21 s</td></tr>
+            <tr><td class="dim-label">Impact analysis (FastAPI)</td><td><strong>0.57 ms</strong></td><td>24.4 ms</td></tr>
+            <tr><td class="dim-label">tsbench score</td><td>184 / 192</td><td><strong>188 / 192</strong></td></tr>
+            <tr><td class="dim-label">tsbench tokens/task</td><td><strong>695</strong></td><td>3,395</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where token-savior is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>A higher benchmark score</h3>188/192 against 184/192 on the 96-task agent benchmark. Four tasks is four tasks.</li>
+        <li><h3>Shell-output compaction</h3>34 compactors for the output of <code>git</code>, <code>cargo</code>, <code>npm</code>, <code>docker</code> and friends. This addresses the <em>other</em> half of agent token spend — Bash results — which TokenSave treats as out of scope entirely.</li>
+        <li><h3>Config and Dockerfile analysis</h3><code>analyze_config</code> and <code>analyze_docker</code> find duplicate keys, committed secrets and orphaned settings across TOML, JSON, YAML, XML, INI, HCL, <code>.env</code> and Dockerfiles. TokenSave parses some of these as languages but has no linting layer over them.</li>
+        <li><h3>Regex parsing is forgiving</h3>Deliberately permissive on partial or malformed code. A tree-sitter grammar that fails to parse a broken file yields nothing useful; a regex annotator still finds the function declarations. Mid-refactor, that difference favours token-savior.</li>
+        <li><h3>A smaller default surface</h3>15 tools in the default optimised mode against TokenSave's 87, with the full 68 available when wanted. That is a more disciplined default than TokenSave offers.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>ASTs carry information regex cannot</h3>Regex finds declarations and import sites. It cannot tell you which <code>impl</code> block a Rust method belongs to or which interface a TypeScript class implements, because that requires scope. TokenSave recovers <code>implements</code>, <code>extends</code>, <code>type_of</code>, <code>annotates</code>, <code>returns</code> and <code>receives</code> edges from the tree.</li>
+        <li><h3>60 languages against 7</h3>On the seven languages both cover, token-savior gets outlines quickly. Outside them it has nothing, while TokenSave has 53 more grammars including deep extractors for Nix, Protobuf, COBOL, Fortran and shaders.</li>
+        <li><h3>Roughly 3x faster to index, ~40x faster on impact</h3>2.15 s against 6.21 s cold on FastAPI; 0.57 ms against 24.4 ms for impact analysis. An in-memory Python dict has to be rebuilt; an indexed libSQL database does not.</li>
+        <li><h3>Nearly 5x fewer tokens per task</h3>695 against 3,395 active tokens on the same benchmark — which is, after all, the thing both tools are named after.</li>
+        <li><h3>Freshness and branches</h3>token-savior has no automatic refresh and no branch awareness. TokenSave checks staleness on every call and can keep a graph per branch.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose token-savior if&hellip;</h3>
+          <p>you want shell-output compaction and config/Docker linting in the same tool as your code index, you work mainly in Python or TypeScript, and the last two percent of benchmark task success matters more to you than a five-fold difference in token spend.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>you want real ASTs across 60 languages, materially faster indexing and impact analysis, branch-aware graphs, automatic freshness, and the lowest token cost per task.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>token-savior figures</strong> — PyPI v1.0.0 metadata and project README, September 2026. The indexer, impact and tsbench numbers come from TokenSave's own comparison run (<code>docs/TOKENSAVE-VS-TOKENSAVIOR.md</code>) against the <code>Mibayy/tsbench</code> suite, which is authored by token-savior's developer. Both tools' figures were produced on the same hardware in that run.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>

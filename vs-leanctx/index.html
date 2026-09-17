@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs LeanCTX — an honest comparison</title>
+  <meta name="description" content="The closest competitor: also Rust, also a single binary, more widely adopted. Where TokenSave's usual arguments stop working.">
+  <meta property="og:title" content="TokenSave vs LeanCTX">
+  <meta property="og:description" content="The closest competitor: also Rust, also a single binary, more widely adopted. Where TokenSave's usual arguments stop working.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs LeanCTX &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">LeanCTX</span></h1>
+      <p class="lede">LeanCTX is the closest competitor TokenSave has, and the one where its usual arguments land weakest. It is also written in Rust. It also ships as a single binary with no runtime. It is more popular by every public measure. The difference is not implementation — it is scope.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; LeanCTX / lean-ctx v3.10.2 (crates.io, Sep 2026)</span>
+    </div>
+
+    <div class="section prose">
+      <div class="callout orange">
+        <strong>The Rust argument does not work here.</strong> Everywhere else on this site, "single native binary,
+        no runtime, fast enough to sit in the agent's critical path" is TokenSave's sharpest differentiator. Against
+        LeanCTX it differentiates nothing: <code>cargo install lean-ctx</code>, Apache-2.0, same shape, same
+        no-runtime install story. And on adoption LeanCTX is ahead — roughly 3,800 GitHub stars against 640, and
+        about 17,600 crates.io downloads against 5,400. This page has to be won on scope and depth or not at all.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">LeanCTX</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td><strong>Rust, single static binary</strong></td></tr>
+            <tr><td class="dim-label">Runtime deps</td><td>None</td><td><strong>None</strong></td></tr>
+            <tr><td class="dim-label">License</td><td>MIT</td><td>Apache-2.0</td></tr>
+            <tr><td class="dim-label">Adoption</td><td>~640 stars, ~5,400 crates downloads</td><td><strong>~3,800 stars, ~17,600 downloads</strong></td></tr>
+            <tr><td class="dim-label">Centre of gravity</td><td><strong>Symbol-level code graph</strong></td><td><strong>Context runtime for all agent I/O</strong></td></tr>
+            <tr><td class="dim-label">MCP tools</td><td><strong>87</strong></td><td>~56, plus 95+ shell-hook patterns</td></tr>
+            <tr><td class="dim-label">File reads</td><td>Symbol and module API queries</td><td><strong>Mode-aware reads</strong>: full, map, signatures, diff, entropy</td></tr>
+            <tr><td class="dim-label">Shell output</td><td>Out of scope &mdash; pair with <a href="https://github.com/aovestdipaperino/rtk">RTK</a></td><td><strong>95+ compression patterns</strong></td></tr>
+            <tr><td class="dim-label">Search</td><td>FTS5 + graph proximity, deterministic</td><td><strong>Hybrid with embeddings</strong></td></tr>
+            <tr><td class="dim-label">Persistent facts</td><td>Decisions, code areas, FTS recall</td><td><strong>Knowledge facts with categories</strong></td></tr>
+            <tr><td class="dim-label">Portable bundles</td><td>Per-branch DBs</td><td><strong><code>.lctxpkg</code>, SHA-256 stamped</strong></td></tr>
+            <tr><td class="dim-label">Graph depth</td><td><strong>Call edges, type hierarchy, complexity, DSM, Gini, test-risk</strong></td><td>Graph and impact analysis</td></tr>
+            <tr><td class="dim-label">Multi-branch</td><td><strong>Per-branch graphs, cross-branch diff</strong></td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Edit primitives</td><td><strong>4 atomic writers, re-index in place</strong></td><td><span class="none">Read-oriented</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where LeanCTX is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>It covers the other half of token spend</h3>TokenSave optimises one thing: the agent reading code. LeanCTX also compresses shell output through 95+ declarative patterns and offers mode-aware file reads — <code>map</code>, <code>signatures</code>, <code>diff</code>, <code>entropy</code> — as a replacement for raw <code>Read</code>. On a real session, Bash results and large-file reads are a large share of the budget, and TokenSave simply does not address them.</li>
+        <li><h3>Hybrid search with embeddings</h3>Reciprocal rank fusion over lexical and vector recall. TokenSave's search is FTS5 plus graph proximity, with the <code>keywords</code> argument as a manual workaround for conceptual queries. On "where do we handle retries?", where the code says <code>backoff</code>, LeanCTX wins.</li>
+        <li><h3>Persistent knowledge facts</h3>Free-form remembered facts with categories and keys, exportable. TokenSave's session memory is narrower: design decisions and touched code areas.</li>
+        <li><h3>Portable context packages</h3><code>.lctxpkg</code> bundles — SHA-256 stamped knowledge, graph subset and session state — so context moves between machines, teammates and CI. TokenSave has per-branch databases but no portable export.</li>
+        <li><h3>A larger community</h3>About six times the stars and three times the downloads. On a tool you are betting a workflow on, that is a real consideration.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>The graph goes deeper</h3>Type hierarchies and inheritance depth, cyclomatic and cognitive complexity, Halstead, maintainability index, CRAP, design-structure matrix, Gini inequality, dependency depth, risk-weighted test gaps, a composite health score, dead code, circular dependencies, god-class detection. LeanCTX does graph and impact analysis; it does not do code health.</li>
+        <li><h3>Multi-branch graphs</h3>Per-branch databases created by copying the nearest ancestor and syncing only the diff, with cross-branch search and diff. LeanCTX has no branch model, and this is the clearest functional gap between them.</li>
+        <li><h3>Deterministic retrieval</h3>No embedding model means the index is a pure function of your source: index twice, get the same graph, with no model to download, version, or drift. LeanCTX's hybrid search is more capable and less reproducible — a genuine trade, not a win for either side.</li>
+        <li><h3>The agent can edit through it</h3>Four atomic edit primitives that re-index in place, so the graph stays true after a change.</li>
+        <li><h3>Per-call token metrics</h3>Every response carries <code>tokensave_metrics: before=N after=M</code>, with an append-only ledger and <code>tokensave gain</code> to price it.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Sustainability</h2>
+      <div class="prose">
+        <p>
+          Both projects are free, local and open source, and neither is metered. The difference is scale of
+          contribution: LeanCTX has more people around it.
+        </p>
+      </div>
+
+        <div class="callout orange">
+          <strong>The fair flip side.</strong> No business model also means no funded roadmap, and on paper a bus
+          factor of one. That is genuinely mitigated here, though not in the usual way: the author is proud of not
+          having written a single line of TokenSave by hand. Every line was produced by Claude, working from a
+          specification held and refined by a person who knows how the thing is supposed to behave. What the project
+          depends on is not one person's hand-written code that nobody else can read — it is someone who understands
+          the design well enough to explain it to an agent, and that is a transferable, reproducible skill rather than
+          a private stock of knowledge locked in a single contributor's head. The code is regenerable. The
+          understanding is the asset, and it is written down.
+        </div>
+
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose LeanCTX if&hellip;</h3>
+          <p>you want one tool covering the whole context surface — code, file reads, shell output — with embedding-backed search, portable context bundles and persistent knowledge facts, backed by the larger community.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>your bottleneck is specifically structural understanding of code: deep per-symbol metrics, type hierarchies, code-health analytics, branch-aware graphs, and an agent that edits with the graph staying true. The two are close enough that running both is defensible.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>LeanCTX figures</strong> — crates.io v3.10.2 and download count, the <code>yvgude/lean-ctx</code> repository metadata, and the <code>lean-ctx-bin</code> npm README, September 2026. Tool and pattern counts are from TokenSave's own feature review (<code>docs/LEAN-CTX-COMPARE.md</code>) and were not re-counted against the current release.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>

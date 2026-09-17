@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs OpenWolf — different categories</title>
+  <meta name="description" content="OpenWolf is project memory and token accounting, not a code graph. Why these two compose rather than compete.">
+  <meta property="og:title" content="TokenSave vs OpenWolf">
+  <meta property="og:description" content="OpenWolf is project memory and token accounting, not a code graph. Why these two compose rather than compete.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs OpenWolf &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">OpenWolf</span></h1>
+      <p class="lede">OpenWolf is the odd one out, and the comparison is mostly a category error worth clearing up. It is not a code graph. It is a portable project-memory layer plus honest token accounting, hooked into several agents at once. It overlaps TokenSave at the edges and competes with it almost nowhere.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; OpenWolf v2.5.2 (npm, Sep 2026)</span>
+    </div>
+
+    <div class="section prose">
+      <div class="callout purple">
+        <strong>These two compose rather than compete.</strong> OpenWolf remembers what your project's conventions
+        are and what a session actually cost. TokenSave knows what calls what. Running both is coherent: nothing in
+        either design conflicts, and they hook into different parts of the agent lifecycle. If you are choosing
+        between them you have probably mis-framed the question — the real question is whether you need memory, a
+        graph, or both.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">OpenWolf</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Category</td><td><strong>Code knowledge graph</strong></td><td><strong>Project memory + token accounting</strong></td></tr>
+            <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td>Node.js</td></tr>
+            <tr><td class="dim-label">License</td><td>MIT</td><td><strong>AGPL-3.0-only</strong></td></tr>
+            <tr><td class="dim-label">MCP tools</td><td><strong>87</strong></td><td>Lifecycle hooks rather than a tool surface</td></tr>
+            <tr><td class="dim-label">Unit of knowledge</td><td>Symbols, call edges, type relations</td><td>Conventions, fixes, a project map in <code>.wolf/</code></td></tr>
+            <tr><td class="dim-label">Cross-agent portability</td><td>Per-agent config; graph lives in <code>.tokensave/</code></td><td><strong>One <code>.wolf/</code> shared across agents</strong></td></tr>
+            <tr><td class="dim-label">Token accounting</td><td>Per-call estimate + savings ledger</td><td><strong>Read from harness transcripts</strong></td></tr>
+            <tr><td class="dim-label">Cross-session memory</td><td>3 tools: decisions, code areas, recall</td><td><strong>The entire point of the product</strong></td></tr>
+            <tr><td class="dim-label">Code analysis</td><td><strong>60 languages, full AST extraction</strong></td><td>File and symbol map with line ranges</td></tr>
+            <tr><td class="dim-label">Network</td><td>Optional anonymous counter, opt-out</td><td>No API calls, no telemetry</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where OpenWolf is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>Token accounting that is actually measured</h3>OpenWolf reads real usage out of the harness transcript. TokenSave's savings ledger is an <em>estimate</em> — a before/after token count per call against a modelled baseline. Both are useful, but only one of them is counting what the provider actually billed you for, and it is not TokenSave.</li>
+        <li><h3>Memory that follows you between agents</h3>One <code>.wolf/</code> directory carries conventions, bug fixes and a project index across Claude Code, Codex and OpenCode. TokenSave's session memory lives in its own project database and does not travel.</li>
+        <li><h3>It remembers the things a graph cannot derive</h3>"The test command is this." "We tried that approach and it broke." "This module's owner is X." None of that is recoverable from an AST, at any depth of parsing.</li>
+        <li><h3>Lifecycle hooks as the integration point</h3>Rather than exposing tools and hoping the model calls them, OpenWolf attaches to session and tool events and restores saved context automatically.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>It actually understands the code</h3>A project map with descriptions, line ranges and import relationships is not a call graph. "Who calls this?", "what breaks if I change it?", "how deep is this inheritance chain?" are outside OpenWolf's scope by design.</li>
+        <li><h3>Licensing</h3>TokenSave is MIT. OpenWolf is AGPL-3.0-only, which carries obligations that many companies will not accept for a tool embedded in their development workflow. Worth checking before you adopt it, not after.</li>
+        <li><h3>Native binary, no Node</h3>OpenWolf is a Node.js package. TokenSave is a single binary with no runtime.</li>
+        <li><h3>TokenSave has memory too, if a narrower kind</h3><code>record_decision</code>, <code>record_code_area</code> and <code>session_recall</code> persist design decisions and touched areas across sessions with FTS5 search over them. It is a fraction of what OpenWolf does, but it is not nothing, and it sits next to the graph.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose OpenWolf if&hellip;</h3>
+          <p>your pain is forgetting rather than searching: the agent keeps relitigating settled decisions, you switch between Claude Code, Codex and OpenCode, and you want token numbers you can trust because they came from the transcript. AGPL must be acceptable in your setting.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>your pain is the agent not understanding the code: it greps, it guesses, it misses callers, it breaks things it did not know depended on the symbol it changed. Or run both — they do not overlap.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>OpenWolf figures</strong> — npm <code>openwolf</code> v2.5.2 metadata and project documentation, September 2026.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>

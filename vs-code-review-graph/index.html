@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs code-review-graph — an honest comparison</title>
+  <meta name="description" content="The closest tool in philosophy, and far more popular. A verified comparison including multi-repo, execution flows, communities and where code-review-graph wins.">
+  <meta property="og:title" content="TokenSave vs code-review-graph">
+  <meta property="og:description" content="The closest tool in philosophy, and far more popular. A verified comparison including multi-repo, execution flows, communities and where code-review-graph wins.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs code-review-graph &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">code-review-graph</span></h1>
+      <p class="lede">Of everything in this space, code-review-graph is the closest to TokenSave in philosophy: a local, symbol-level graph in SQLite, queried by the agent through specialised MCP tools. It is also, by a wide margin, the more popular project. The differences are implementation language, analysis depth, and what each one thinks the graph is <em>for</em>.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; code-review-graph v2.3.8 (PyPI, Sep 2026)</span>
+    </div>
+
+    <div class="section prose">
+      <div class="callout orange">
+        <strong>Scale, stated plainly.</strong> code-review-graph has roughly 31,500 GitHub stars. TokenSave has
+        about 640. If you weight adoption — more eyes on bugs, more contributors, more chance it is still maintained
+        in two years — that gap is the most important number on this page, and it does not favour TokenSave. Two
+        earlier TokenSave docs describe this project as having 22 tools and 19 languages; it now documents 30 tools
+        and 40+ languages. Those docs were stale and the figures below are the current ones.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">code-review-graph</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td>Python 3.10+</td></tr>
+            <tr><td class="dim-label">Runtime deps</td><td><strong>None</strong> — OS libraries only</td><td>Python interpreter + tree-sitter bindings</td></tr>
+            <tr><td class="dim-label">License</td><td>MIT</td><td>MIT</td></tr>
+            <tr><td class="dim-label">Adoption</td><td>~640 stars</td><td><strong>~31,500 stars</strong></td></tr>
+            <tr><td class="dim-label">MCP tools</td><td><strong>87</strong></td><td>30</td></tr>
+            <tr><td class="dim-label">Languages</td><td><strong>60</strong></td><td>40+, plus Jupyter/Databricks notebooks</td></tr>
+            <tr><td class="dim-label">Storage</td><td>libSQL, WAL, FTS5, async</td><td>SQLite</td></tr>
+            <tr><td class="dim-label">Multi-repo</td><td><span class="none">One project at a time</span></td><td><strong>Registry + cross-repo search</strong></td></tr>
+            <tr><td class="dim-label">Clustering</td><td>Coupling and DSM analysis</td><td><strong>Leiden communities</strong>, recursive split</td></tr>
+            <tr><td class="dim-label">Execution flows</td><td><span class="none">Call traversal only</span></td><td><strong>Named, criticality-ranked flows</strong></td></tr>
+            <tr><td class="dim-label">Doc generation</td><td><code>doc_coverage</code> measures existing docs</td><td><strong>Wiki generation</strong> from the graph</td></tr>
+            <tr><td class="dim-label">MCP prompts</td><td><span class="none">None</span></td><td><strong>5 templates</strong></td></tr>
+            <tr><td class="dim-label">Framework awareness</td><td>Generic extraction across 60 grammars</td><td><strong>Laravel PSR-4, Spring DI</strong></td></tr>
+            <tr><td class="dim-label">Multi-branch</td><td><strong>Per-branch graphs</strong>, cross-branch diff</td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Edit primitives</td><td><strong>4 atomic writers</strong>, re-index in place</td><td><code>refactor</code> / <code>apply_refactor</code></td></tr>
+            <tr><td class="dim-label">Published benchmarks</td><td><code>tokensave bench</code>, reproducible on your repo</td><td><strong>~63x median reduction, F1 0.69</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where code-review-graph is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>Multi-repository work</h3>A registry of repos and a cross-repo search tool. TokenSave operates on one project at a time — you can point it at another graph root, but there is no single query spanning all of them. If your work is genuinely multi-repo, this is decisive.</li>
+        <li><h3>Execution flows</h3>Call chains from entry points, assembled into named flows sorted by weighted criticality. TokenSave has the raw traversal — <code>callers</code>, <code>callees</code>, <code>impact</code>, <code>call_chain</code> — but never assembles them into ranked flows. Their own numbers put flow detection around 33% recall, so treat it as a lead generator rather than ground truth.</li>
+        <li><h3>Leiden community detection</h3>Proper clustering of tightly-coupled code, with recursive splitting for large graphs, plus wiki pages generated from the community structure. TokenSave's coupling and DSM analysis gets near this but never names the clusters.</li>
+        <li><h3>Framework-aware extraction</h3>Laravel/Composer PSR-4 resolution for PHP and Spring dependency-injection wiring for Java. TokenSave's extractors are generic per-grammar and will miss framework-mediated edges that no AST node spells out.</li>
+        <li><h3>Published, adversarial benchmarks</h3>~63x median per-question token reduction across six repos and 0.69 average F1 for impact analysis against graph-derived ground truth. Publishing an F1 below 1.0 for your own core feature is the mark of an honest benchmark, and TokenSave publishes no comparable accuracy figure.</li>
+        <li><h3>A community an order of magnitude larger</h3>Roughly 31,500 stars against roughly 640. More contributors, more issues found, more likely to outlive its author's interest.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>It can sit in the critical path</h3>A complete TokenSave invocation is about a quarter of a second with no interpreter to start. That is what lets it install a <code>PreToolUse</code> hook that fires on <em>every</em> Agent, Grep and Bash call and redirect symbol-shaped searches into the graph. Pay a Python cold start on every tool call and that design stops being viable — which is why code-review-graph is invoked deliberately rather than reflexively.</li>
+        <li><h3>Depth of analysis per symbol</h3>Cyclomatic and cognitive complexity, Halstead metrics, maintainability index, CRAP score, type hierarchies, inheritance depth, recursion detection, dead code, unused imports. code-review-graph's quality surface is essentially <code>find_large_functions</code>.</li>
+        <li><h3>Multi-branch and worktrees</h3>Per-branch databases, near-instant to create, with cross-branch search and diff. This is the thing that bites hardest when several agents work in parallel worktrees, and code-review-graph has no answer to it.</li>
+        <li><h3>Broader language coverage with deep extractors</h3>60 languages including Nix derivation fields, Protobuf messages and services, COBOL, Fortran, shader languages and legacy BASIC dialects — plus annotation extraction across 13 languages.</li>
+        <li><h3>Agent breadth</h3>12+ agents wired with native config formats, hooks, steering files and permissions.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose code-review-graph if&hellip;</h3>
+          <p>you work across several repositories, you want execution flows and named communities, you want generated wiki documentation, you value framework-aware extraction for PHP or Java, or you simply want the project with the largest community behind it.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>you want the graph invoked reflexively rather than deliberately, you need deep per-symbol quality metrics, you work across branches and worktrees, or you want the agent to edit code with the graph staying true afterwards.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>code-review-graph figures</strong> — PyPI v2.3.8, the GitHub repository metadata and the project README, September 2026. Its benchmark numbers are its own and were not independently reproduced here.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>

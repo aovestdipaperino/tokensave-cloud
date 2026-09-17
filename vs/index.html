@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs everything else — honest comparisons</title>
+  <meta name="description" content="Seven side-by-side comparisons of TokenSave against the other code knowledge graphs and context tools for AI coding agents, including where each one wins.">
+  <meta property="og:title" content="TokenSave vs everything else">
+  <meta property="og:description" content="Seven side-by-side comparisons of TokenSave against the other code knowledge graphs and context tools for AI coding agents, including where each one wins.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/">&larr; tokensave.dev</a>
+      <span>comparisons &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">everything else</span></h1>
+      <p class="lede">
+        Seven honest comparisons against the tools that solve the same problem. Each page states where the other tool
+        is better, because a comparison that finds no faults in its own product is marketing rather than information.
+      </p>
+      <span class="stamp">All TokenSave figures verified against v7.12.1 source &middot; 17 Sep 2026</span>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">The comparisons</h2>
+      <div class="vs-grid">
+        <a class="vs-card" href="/vs-graphify">
+          <h3>vs Graphify</h3>
+          <div class="kind">code knowledge graph</div>
+          <p>Closest in premise: local tree-sitter parsing, no embeddings, a graph the agent traverses. Differs on non-code nodes, token budgets and a hosted commercial tier.</p>
+        </a>
+        <a class="vs-card" href="/vs-leanctx">
+          <h3>vs LeanCTX</h3>
+          <div class="kind">context runtime &middot; also Rust</div>
+          <p>The closest competitor. Also a single Rust binary, more widely adopted, and broader across shell output and file reads. TokenSave's usual native-binary argument does not apply here.</p>
+        </a>
+        <a class="vs-card" href="/vs-code-review-graph">
+          <h3>vs code-review-graph</h3>
+          <div class="kind">code knowledge graph</div>
+          <p>Closest in philosophy and far larger — roughly 31,500 stars. Multi-repo, execution flows, Leiden communities and published accuracy benchmarks.</p>
+        </a>
+        <a class="vs-card" href="/vs-codegraph">
+          <h3>vs CodeGraph</h3>
+          <div class="kind">code knowledge graph &middot; the ancestor</div>
+          <p>The project TokenSave was originally a Rust rewrite of. It now has a Rust kernel and bundles its own runtime, and deliberately exposes one tool instead of many.</p>
+        </a>
+        <a class="vs-card" href="/vs-token-savior">
+          <h3>vs token-savior</h3>
+          <div class="kind">structural index + output compaction</div>
+          <p>Similar name, different engineering: regex annotators and shell compaction. Scores higher on the shared agent benchmark; uses about five times the tokens to do it.</p>
+        </a>
+        <a class="vs-card" href="/vs-graperoot">
+          <h3>vs GrapeRoot</h3>
+          <div class="kind">context prefill layer</div>
+          <p>The one genuine philosophical opponent: it pre-loads context instead of letting the agent ask. Proprietary core, two runtimes, file-level graph.</p>
+        </a>
+        <a class="vs-card" href="/vs-openwolf">
+          <h3>vs OpenWolf</h3>
+          <div class="kind">project memory &middot; not a graph</div>
+          <p>A different category — portable cross-agent memory and token accounting read from harness transcripts. Composes with TokenSave rather than competing.</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">How these pages are written</h2>
+      <div class="prose">
+        <p>
+          Three rules. <strong>First, every TokenSave number is verified against source</strong> at
+          <code>origin/master</code> rather than copied from a README — which is how the tool count on these pages
+          became 87 rather than the "80+" the documentation claims, and the language count 60 rather than "50+".
+        </p>
+        <p>
+          <strong>Second, the other tool's advantages get stated without hedging.</strong> CodeGraph's one-tool design
+          is a direct argument against TokenSave's 87. code-review-graph has fifty times the users. LeanCTX is also a
+          single Rust binary, which retires TokenSave's favourite differentiator entirely. token-savior scores higher
+          on the shared benchmark. Those all appear on their pages, in those words.
+        </p>
+        <p>
+          <strong>Third, competitors' own figures are labelled as theirs.</strong> Where a number comes from another
+          project's documentation it is marked as unverified, because running someone else's benchmark badly is worse
+          than not running it.
+        </p>
+        <p>
+          Corrections are welcome and get applied:
+          <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>

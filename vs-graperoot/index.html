@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenSave vs GrapeRoot — an honest comparison</title>
+  <meta name="description" content="Prefill versus query: GrapeRoot pre-loads context, TokenSave lets the agent ask. A verified comparison including where prefill genuinely wins.">
+  <meta property="og:title" content="TokenSave vs GrapeRoot">
+  <meta property="og:description" content="Prefill versus query: GrapeRoot pre-loads context, TokenSave lets the agent ask. A verified comparison including where prefill genuinely wins.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+  <link rel="stylesheet" href="/vs-assets/style.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V15HR4961"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4V15HR4961');
+  </script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <a href="/vs">&larr; all comparisons</a>
+      <span>vs GrapeRoot &middot; updated 17 Sep 2026</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">GrapeRoot</span></h1>
+      <p class="lede">GrapeRoot (formerly Dual-Graph) is the one tool here that disagrees with TokenSave at the root. TokenSave gives the agent tools and trusts it to ask. GrapeRoot decides what the agent should see and packs it into the prompt before the agent gets a turn. Almost every other difference follows from that one.</p>
+      <span class="stamp">TokenSave v7.12.1 &middot; GrapeRoot / graperoot 3.10.19 (PyPI, Sep 2026)</span>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Prefill versus query</h2>
+      <div class="prose">
+        <p>
+          <strong>GrapeRoot is a prefill layer.</strong> It sits between you and your assistant as a launcher, ranks
+          the files it believes are relevant, and loads them into the prompt. The stated goal is that "no exploration"
+          happens — the agent never spends turns looking around because the answer is already in front of it.
+        </p>
+        <p>
+          <strong>TokenSave is a query surface.</strong> It assumes the agent is capable of asking good questions
+          given good tools, and optimises for making each question cheap and precise.
+        </p>
+        <p>
+          Neither is obviously right, and the honest answer is that <em>it depends on the model</em>. A weaker model
+          that picks tools badly benefits from having context chosen for it. A strong model that knows what it is
+          looking for is held back by a fixed prefill guess and does better with a scalpel. As frontier models get
+          better at tool selection, the prefill advantage narrows — but that is a trend, not a proof, and on a bad
+          model today prefill genuinely wins.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">At a glance</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th class="ts">TokenSave</th><th class="gf">GrapeRoot</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="dim-label">Model</td><td>Agent queries the graph on demand</td><td><strong>Files pre-loaded into the prompt</strong></td></tr>
+            <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td>Python 3.10+ <strong>and</strong> Node.js 18+</td></tr>
+            <tr><td class="dim-label">Runtime deps</td><td><strong>None</strong></td><td>Two runtimes, ~80&nbsp;MB+</td></tr>
+            <tr><td class="dim-label">License</td><td>MIT, auditable end to end</td><td>Apache-2.0 launcher, <strong>proprietary core</strong></td></tr>
+            <tr><td class="dim-label">Unit of analysis</td><td><strong>Symbol</strong> — functions, fields, call edges</td><td>File, plus symbols and imports</td></tr>
+            <tr><td class="dim-label">Call graph</td><td><strong>Full inter-procedural</strong></td><td>File-level neighbours</td></tr>
+            <tr><td class="dim-label">MCP tools</td><td><strong>87</strong></td><td>3 graph tools, prefill is the main path</td></tr>
+            <tr><td class="dim-label">Languages</td><td><strong>60</strong></td><td>12</td></tr>
+            <tr><td class="dim-label">Storage</td><td>libSQL with FTS5 and indexed lookups</td><td>JSON files — every lookup is a full scan</td></tr>
+            <tr><td class="dim-label">Exploration turns</td><td>Agent spends a call to ask</td><td><strong>Zero — context arrives pre-loaded</strong></td></tr>
+            <tr><td class="dim-label">Multi-branch</td><td><strong>Yes, opt-in</strong></td><td><span class="none">No</span></td></tr>
+            <tr><td class="dim-label">Privacy</td><td>Anonymous token count, documented opt-out</td><td>Persistent install ID sent on launch</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title blue">Where GrapeRoot is the better tool</h2>
+      <ul class="points blue">
+        <li><h3>Zero exploration turns</h3>This is a real advantage and worth stating without hedging. Every TokenSave query is a round trip: the agent decides to ask, calls a tool, waits, reads. GrapeRoot pays that cost once, up front, outside the conversation. On a task where the relevant files are predictable, prefill is simply fewer turns.</li>
+        <li><h3>It works when the agent chooses badly</h3>TokenSave's value is contingent on the agent actually calling it and calling the right tool — which is precisely why TokenSave has to install hooks that block Explore agents and redirect greps. GrapeRoot needs no such enforcement, because the agent was never given the choice.</li>
+        <li><h3>Compounding savings across a session</h3>Because context is assembled before the prompt, savings accrue over a whole session rather than per call.</li>
+        <li><h3>A simpler mental model</h3>Nothing to learn, no tool vocabulary, no rules in CLAUDE.md telling the model what to prefer. You launch your assistant through it and it gets better context.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Where TokenSave is the better tool</h2>
+      <ul class="points">
+        <li><h3>You can read all of it</h3>TokenSave is MIT-licensed Rust you can audit, fork and patch. GrapeRoot's launcher scripts are Apache-2.0, but the engine that actually consumes your code — the <code>graperoot</code> package — is proprietary and published as a closed binary. You cannot see what it does with your code graph. For some organisations that ends the evaluation on its own.</li>
+        <li><h3>Symbol level, not file level</h3>"Who calls this function?" and "what breaks if I change this struct?" are questions a file-level neighbour graph cannot answer at all. TokenSave answers them from indexed call edges.</li>
+        <li><h3>Indexed storage</h3>libSQL with FTS5, WAL-mode concurrent reads and O(1) lookups, against JSON files that must be scanned in full for every query. The gap widens with repo size.</li>
+        <li><h3>One runtime — none, in fact</h3>GrapeRoot needs both Python 3.10+ and Node.js 18+. TokenSave needs neither.</li>
+        <li><h3>Prefill cannot answer the unexpected question</h3>The fundamental limit of guessing ahead: when the agent needs something the ranker did not anticipate, there is no way to ask for it. TokenSave degrades gracefully because asking is always available.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Which should you use</h2>
+      <div class="verdict">
+        <div class="verdict-card gf">
+          <h3>Choose GrapeRoot if&hellip;</h3>
+          <p>you would rather not think about it: you want better context with no tool vocabulary to learn and no dependence on the model choosing well, and a proprietary core is acceptable to you.</p>
+        </div>
+        <div class="verdict-card ts">
+          <h3>Choose TokenSave if&hellip;</h3>
+          <p>you want an auditable tool, symbol-level answers to structural questions, and an agent that can ask for whatever it actually needs rather than working from a guess made before the conversation started.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Method</h2>
+      
+      <div class="prose">
+        <p>
+          Every TokenSave figure on this page was verified against the source at <code>origin/master</code>
+          (v7.12.1), not taken from its own README:
+        </p>
+      </div>
+
+      <ul class="footnotes">
+        
+        <li><strong>87 tools</strong> — asserted by <code>test_tool_definitions_complete</code> in <code>src/mcp/tools/handlers/mod.rs</code>; 86 when the optional <code>ast-grep</code> binary is absent from <code>PATH</code>.</li>
+        <li><strong>60 languages</strong> — counted from the <code>[features]</code> tiers in <code>Cargo.toml</code>: 11 lite, 9 medium, 40 full. The README's "50+" is conservative.</li>
+        <li><strong>0.24s</strong> — wall-clock <code>real</code> time for a complete <code>tokensave status</code> invocation, best of repeated runs on an Apple Silicon Mac. Your hardware and repo size will differ.</li>
+        <li><strong>Zero runtime dependencies</strong> — <code>otool -L</code> on the released binary; system frameworks only.</li>
+
+        <li><strong>GrapeRoot figures</strong> — PyPI <code>graperoot</code> 3.10.19 (licence field: Proprietary), the Codex-CLI-Compact repository and its README, September 2026.</li>
+        <li>Where this page is wrong or has gone stale, <a href="https://github.com/aovestdipaperino/tokensave/issues">open an issue</a> and it will be corrected.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Rust</span>
+        <span class="badge">macOS &middot; Linux &middot; Windows</span>
+      </div>
+      <a href="https://github.com/aovestdipaperino/tokensave">github.com/aovestdipaperino/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://crates.io/crates/tokensave">crates.io/crates/tokensave</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/vs">all comparisons</a>
+    </div>
+  </footer>
+
+</body>
+</html>
