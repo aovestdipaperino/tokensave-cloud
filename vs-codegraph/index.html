@@ -66,7 +66,7 @@
             <tr><td class="dim-label">Languages</td><td><strong>60</strong> across 3 build tiers</td><td>30+</td></tr>
             <tr><td class="dim-label">Tool philosophy</td><td>Many specialised tools, agent composes them</td><td><strong>One tool that answers everything</strong></td></tr>
             <tr><td class="dim-label">Semantic search</td><td>Keyword expansion over FTS5, zero-cost</td><td><strong>Local embeddings</strong> (ONNX)</td></tr>
-            <tr><td class="dim-label">Freshness</td><td>Staleness check per MCP call + catch-up sync</td><td><strong>Native OS file watcher</strong></td></tr>
+            <tr><td class="dim-label">Freshness</td><td><strong>On demand</strong> — staleness check per call, work follows queries</td><td>Native OS file watcher — work follows saves</td></tr>
             <tr><td class="dim-label">Multi-branch</td><td><strong>Per-branch graphs</strong>, cross-branch diff</td><td><span class="none">No</span></td></tr>
             <tr><td class="dim-label">Edit primitives</td><td><strong>4 atomic writers</strong>, re-index in place</td><td><span class="none">No</span></td></tr>
             <tr><td class="dim-label">Health analytics</td><td><strong>Composite score, Gini, DSM, test-risk</strong></td><td><span class="none">No</span></td></tr>
@@ -78,10 +78,49 @@
     </div>
 
     <div class="section">
+      <h2 class="section-title">On the file watcher: the complexity is not worth it</h2>
+      <div class="prose">
+        <p>
+          CodeGraph embeds a native OS watcher — FSEvents, inotify, ReadDirectoryChangesW — debounced to a short
+          quiet window, so the index tracks the filesystem continuously. That sounds strictly better than TokenSave's
+          on-demand staleness check. It is not, and the reason is worth stating plainly.
+        </p>
+        <p>
+          <strong>A watcher does work proportional to edits. An on-demand check does work proportional to
+          queries.</strong> Those are very different quantities. An agent mid-refactor writes files in bursts —
+          and so does <code>cargo build</code>, <code>npm install</code>, a branch switch, a rebase, a code
+          formatter. A watcher wakes up and re-indexes for every one of them. <em>Why keep the graph fresh for a
+          save that nothing is ever going to query?</em> Most of that work is speculative, and most speculation is
+          wasted.
+        </p>
+        <p>
+          The on-demand model inverts it: the index is brought up to date at the top of a tool call, when something
+          is actually about to read it, with a short cooldown so a burst of calls does not re-check repeatedly. The
+          sync itself is incremental — hash and mtime pre-filter, only changed files re-parsed — so the check is
+          cheap precisely because the work was never deferred into a pile. You pay for freshness at the moment
+          freshness has a consumer.
+        </p>
+        <p>
+          This is not a theoretical preference. <strong>TokenSave shipped a watcher in 6.0.0 and removed it in
+          6.1.1.</strong> On large monorepos it registered OS-level watches on nested <code>node_modules</code>,
+          <code>target</code> and <code>dist</code> trees that the top-level ignore filter missed, producing event
+          storms and unbounded memory growth — one report reached 19&nbsp;GB. Removing it also dropped a dependency
+          and a long-lived background thread from the process. The feature was tried, measured, and deleted.
+        </p>
+        <div class="callout orange">
+          <strong>The honest residual.</strong> On-demand does lose one thing: the first query after a large change
+          pays the incremental sync inline, where a watcher would have done it in the background a second earlier.
+          That is a few hundred milliseconds on a normal change set, once, against a permanent background process
+          and an unbounded worst case. If your workflow is one enormous change followed by exactly one query, the
+          watcher wins that round. Nothing else recommends it.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
       <h2 class="section-title blue">Where CodeGraph is the better tool</h2>
       <ul class="points blue">
         <li><h3>One tool instead of eighty-seven</h3>CodeGraph deliberately exposes <code>codegraph_explore</code> as its single listed tool: ask a structural question, get source, call paths and blast radius in one call. TokenSave's 87 definitions cost tokens on every request and give the model more ways to choose wrong. <strong>This is the strongest argument against TokenSave's whole design</strong>, and it comes from the project TokenSave forked from.</li>
-        <li><h3>A real file watcher</h3>CodeGraph uses native OS notifications — FSEvents, inotify, ReadDirectoryChangesW — with a short debounce, so the index tracks the tree continuously. TokenSave checks staleness on demand per MCP call, which means freshness is tied to tool activity rather than to the filesystem.</li>
         <li><h3>Embedding-backed semantic search</h3>CodeGraph runs a local embedding model for conceptual recall. TokenSave's answer is agent-driven keyword expansion — free and deterministic, but genuinely weaker when the query shares no vocabulary with the code.</li>
         <li><h3>A graph visualizer</h3>CodeGraph ships one. TokenSave removed its own in v4.0.1 to cut scope. For a human trying to understand an unfamiliar repo rather than an agent querying it, that is a real loss.</li>
       </ul>
@@ -103,7 +142,7 @@
       <div class="verdict">
         <div class="verdict-card gf">
           <h3>Choose CodeGraph if&hellip;</h3>
-          <p>you want the minimal surface: one tool, one call, an answer — and you value a continuous file watcher and embedding-based recall over breadth. If you only use Claude Code and want the smallest thing that works, this is a very defensible choice.</p>
+          <p>you want the minimal surface: one tool, one call, an answer — and you value embedding-based recall over breadth. If you only use Claude Code and want the smallest thing that works, this is a very defensible choice.</p>
         </div>
         <div class="verdict-card ts">
           <h3>Choose TokenSave if&hellip;</h3>
