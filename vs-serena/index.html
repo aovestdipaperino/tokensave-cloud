@@ -32,7 +32,7 @@
 
     <div class="hero">
       <h1><span class="ts">TokenSave</span><span class="vs">vs</span><span class="gf">Serena</span></h1>
-      <p class="lede">Serena is the strongest technical challenge on this site. It reaches semantic understanding through the Language Server Protocol rather than through its own parsers — which means that on the specific question of resolution accuracy, it is right where TokenSave is guessing. It also refactors properly. This is the page where the concessions are largest.</p>
+      <p class="lede">Serena is the strongest technical challenge on this site. It reaches semantic understanding through the Language Server Protocol rather than through its own parsers, so on resolution accuracy it is exact where TokenSave is guessing, and it refactors properly. What that exactness costs — a language server per language, minutes of cold indexing, gigabytes resident — is the other half of the comparison.</p>
       <span class="stamp">TokenSave v7.12.1 &middot; Serena (oraios/serena), Sep 2026</span>
     </div>
 
@@ -61,15 +61,54 @@
           A language server has none of these problems, because it has the type information. One
           <code>textDocument/definition</code> request returns the exact target. Serena is built on that from the
           start; TokenSave has an LSP pass <em>designed</em> to fix this and it is <strong>not shipped</strong> &mdash;
-          there is currently no LSP code in the MCP server at all. On resolution accuracy, Serena is simply ahead,
-          and will stay ahead until that design doc becomes code.
+          there is currently no LSP code in the MCP server at all. <strong>On resolution accuracy in principle,
+          Serena is ahead</strong>, and stays ahead until that design doc becomes code.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">But price that accuracy honestly</h2>
+      <div class="prose">
+        <p>
+          "More accurate" is only half a comparison. The other half is what the accuracy costs and how often it
+          changes an answer &mdash; and on both counts the case for LSP is weaker than the theory suggests.
         </p>
         <p>
-          The trade TokenSave makes in exchange is real, though. A language server must be installed per language,
-          started, and warmed before it answers; on a large project that first request can take many seconds, and
-          the server holds significant memory for as long as it runs. TokenSave's graph is precomputed and on disk,
-          so a query costs a database lookup. Which of those you want depends on whether you value exactness or
-          latency more &mdash; and on whether the aggregate questions below matter to you at all.
+          <strong>Language servers are slow, structurally.</strong> Not slow in the sense of a badly optimised
+          function &mdash; slow because a server must build its own model of the project before it can answer
+          anything. On a large workspace that cold index runs into minutes and the resident process can hold
+          gigabytes; rust-analyzer and the Java language server are the well-known offenders, but the shape is
+          general. Switch branches and much of that work happens again. Serena inherits this: its first useful answer
+          waits on a server that is still thinking, and it needs one such server per language in the repo.
+        </p>
+        <p>
+          TokenSave pays its indexing cost once, ahead of time, into a file on disk. A query afterwards is a database
+          lookup &mdash; a quarter of a second for the whole process, cold, including startup. <strong>That is not a
+          small constant-factor difference; it is the difference between a tool you can call on every turn and a tool
+          you call when you have decided it is worth waiting for.</strong>
+        </p>
+        <p>
+          <strong>And the accuracy delta is unmeasured.</strong> TokenSave's design doc lists where its heuristic
+          fails; it does not say how often. A resolver that keys on qualified names, import aliases and file
+          proximity gets the overwhelming majority of ordinary references right &mdash; the failures cluster in
+          genuinely ambiguous code: repeated type names across modules, heavy dynamic dispatch, deep re-export
+          chains. Whether that is 0.5% of your edges or 15% depends entirely on the codebase, and neither project
+          publishes the number.
+        </p>
+        <div class="callout orange">
+          <strong>So the trade is a certain cost against an uncertain benefit.</strong> You pay LSP's latency and
+          memory on every session and every language, always. You collect the accuracy benefit only on the subset of
+          references your codebase actually makes ambiguous. On a single-language repo with clean naming, that subset
+          may be nearly empty and the heuristic is as good in practice while being orders of magnitude faster. On a
+          large polyglot codebase with three <code>Config</code> types and heavy dynamic dispatch, the subset is big
+          enough that Serena's exactness earns its keep. <em>Measure your own repo before assuming which one you
+          are.</em>
+        </div>
+        <p>
+          The place the argument is unambiguous is refactoring. A rename that is 98% correct is not 98% of a rename
+          &mdash; it is a broken build. That is why the concession below on Serena's atomic rename, move and inline
+          stands without qualification, even though the concession on read-path accuracy does not.
         </p>
       </div>
     </div>
@@ -83,10 +122,10 @@
           </thead>
           <tbody>
             <tr><td class="dim-label">Semantic backend</td><td>Tree-sitter ASTs + heuristic resolution</td><td><strong>Language servers (LSP)</strong>, real type info</td></tr>
-            <tr><td class="dim-label">Resolution accuracy</td><td>Heuristic; documented failure modes</td><td><strong>Compiler-grade</strong></td></tr>
+            <tr><td class="dim-label">Resolution accuracy</td><td>Heuristic; documented failure modes, unmeasured rate</td><td><strong>Compiler-grade</strong>, at a latency cost</td></tr>
             <tr><td class="dim-label">Implementation</td><td>Rust, single static binary</td><td>Python 3.13+ with <code>uv</code></td></tr>
             <tr><td class="dim-label">Runtime deps</td><td><strong>None</strong></td><td>Python, <code>uv</code>, plus a language server per language</td></tr>
-            <tr><td class="dim-label">Cold start</td><td><strong>~0.24 s, precomputed graph</strong></td><td>Language server startup and warm-up</td></tr>
+            <tr><td class="dim-label">Cold start</td><td><strong>~0.24 s, precomputed graph</strong></td><td>Minutes on a large workspace; GBs resident</td></tr>
             <tr><td class="dim-label">License</td><td><strong>MIT</strong></td><td>GPL-3.0-or-later (app), MIT (SolidLSP); <strong>CLA required</strong></td></tr>
             <tr><td class="dim-label">Adoption</td><td>~640 stars</td><td><strong>~29,500 stars</strong></td></tr>
             <tr><td class="dim-label">Languages</td><td><strong>60</strong>, no server needed</td><td>40+, each needing its language server</td></tr>
@@ -105,7 +144,7 @@
     <div class="section">
       <h2 class="section-title blue">Where Serena is the better tool</h2>
       <ul class="points blue">
-        <li><h3>It is right where TokenSave guesses</h3>Covered above and worth repeating: overloads, method dispatch, re-exports and cross-crate references are documented weaknesses of TokenSave's resolver and non-problems for a language server. If your codebase has three things called <code>Config</code>, this difference is not academic.</li>
+        <li><h3>It is exact where TokenSave guesses</h3>Overloads, method dispatch, re-exports and cross-crate references are documented weaknesses of TokenSave's resolver and non-problems for a language server. How much that buys you depends on how ambiguous your codebase actually is &mdash; see the pricing above &mdash; but if you have three things called <code>Config</code> and heavy dynamic dispatch, it buys a lot.</li>
         <li><h3>Real refactoring, not a preview</h3>Cross-file rename, move, inline and safe delete as atomic operations, with the language server guaranteeing every reference is updated. TokenSave's <code>rename_preview</code> shows you what its graph believes would be affected and leaves the editing to you &mdash; and its graph is the heuristic one. This is the single biggest capability gap on this page.</li>
         <li><h3>Live diagnostics</h3>Serena surfaces the language server's own errors and warnings, so the agent can see it broke something without running a build. TokenSave has no equivalent.</li>
         <li><h3>Symbol-level editing primitives</h3>"Replace this symbol's body", "insert after this symbol" &mdash; addressed semantically rather than by text anchor. TokenSave has <code>replace_symbol</code> and <code>insert_at_symbol</code> too, but resolved through the heuristic graph rather than a language server.</li>
@@ -143,11 +182,11 @@
       <div class="verdict">
         <div class="verdict-card gf">
           <h3>Choose Serena if&hellip;</h3>
-          <p>you want compiler-grade accuracy and real refactoring &mdash; atomic cross-file renames and moves, live diagnostics &mdash; you work mainly in one or two languages with good language servers, and GPL is acceptable in your setting.</p>
+          <p>you refactor often and want it atomic and correct, your codebase is genuinely ambiguous enough that heuristic resolution misfires, you work mainly in one or two languages with good language servers, and you can absorb the cold-start and memory cost. GPL must be acceptable in your setting.</p>
         </div>
         <div class="verdict-card ts">
           <h3>Choose TokenSave if&hellip;</h3>
-          <p>you want questions answered about the whole codebase rather than one symbol, you work across many languages or in CI where per-language servers are impractical, you need branch-aware graphs, or you want lookups cheap enough to run on every single tool call.</p>
+          <p>you want questions answered about the whole codebase rather than one symbol, you work across many languages or in CI where a server per language is impractical, you need branch-aware graphs, or you want lookups cheap enough to run on every single tool call &mdash; which rules out waiting on a language server by construction.</p>
         </div>
       </div>
     </div>
