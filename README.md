@@ -1,5 +1,7 @@
 # tokensave-cloud
 
+[![GitHub stars](https://img.shields.io/github/stars/aovestdipaperino/tokensave-cloud?logo=github&color=brightgreen)](https://github.com/aovestdipaperino/tokensave-cloud/stargazers)
+
 Cloudflare Worker that powers the worldwide token-saved counter for [tokensave](https://github.com/aovestdipaperino/tokensave).
 
 ## Architecture
